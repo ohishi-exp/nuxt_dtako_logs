@@ -8,7 +8,11 @@ export default defineNuxtConfig({
     host: '0.0.0.0',
   },
 
-
+  runtimeConfig:{
+    public:{
+      googlemapKey:""
+    }
+  },
 
   vite: {
     server: {
@@ -19,6 +23,22 @@ export default defineNuxtConfig({
       },
     },
   },
+  hooks: {
+    ///https://zenn.dev/coedo/scraps/b0d1ae5de09f63
+    //https://zenn.dev/wwwave/articles/cc9d078fbf94fa
+    'vite:extendConfig'(viteInlineConfig: any, env: any) {
+      viteInlineConfig.server = {
+        ...viteInlineConfig.server,
+        hmr: { // ここに書く
+          clientPort: 443,
+          protocol: 'wss',
+          path: 'hmr/',
+          // port: 443,
+        },
+      }
+    },
+  },
+  
   apiParty: {
     endpoints: {
       jsonPlaceholder: {
