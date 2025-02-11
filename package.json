@@ -8,7 +8,7 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "deploy":"nuxt generate && wrangler pages deploy dist/"
+    "deploy":"NITRO_PRESET=cloudflare_module nuxt build && wrangler deploy"
   },
   "dependencies": {
     "@googlemaps/js-api-loader": "^1.16.8",

@@ -1,7 +1,5 @@
 <template>
   <div>
-    test
-    <!-- <NuxtRouteAnnouncer /> -->
     <NuxtPwaManifest />
     <ClientOnly>
 
