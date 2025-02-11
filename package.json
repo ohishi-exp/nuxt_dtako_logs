@@ -1,0 +1,26 @@
+{
+  "name": "nuxt-app",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare"
+  },
+  "dependencies": {
+    "@nuxt/ui": "2.21.0",
+    "@vite-pwa/nuxt": "0.10.6",
+    "@vueuse/nuxt": "12.5.0",
+    "nuxt": "^3.15.4",
+    "nuxt-api-party": "2.1.2",
+    "openapi-typescript": "^5 || ^6 || ^7",
+    "typescript": "^5.7.3",
+    "vue": "latest",
+    "vue-router": "latest"
+  },
+  "devDependencies": {
+    "@vite-pwa/assets-generator": "^0.2.6"
+  }
+}
