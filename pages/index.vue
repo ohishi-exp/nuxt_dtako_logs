@@ -1,7 +1,7 @@
 <template>
-  <div ref="gmap" class="h-[500px] w-[800px]"></div>
   <div>
 
+    <div ref="gmap" class="h-[500px] w-[800px] hidden" ></div>
     <UButton label="Open" @click="isOpen = true" />
 
     <UInput placeholder="Search..." v-model="q"></UInput>
@@ -39,23 +39,16 @@
     </UTable>
   </div>
 
-  <USlideover v-model="isOpen">
-    <div class="p-4 flex-1">
-
-      <UButton color="gray" variant="ghost" size="sm" icon="i-heroicons-x-mark-20-solid"
-        class="flex sm:hidden absolute end-5 top-5 z-10" square padded @click="isOpen = false" />
-      <!-- <Placeholder class="h-full" /> -->
-    </div>
-  </USlideover>
 
 </template>
 
 
+<style lang="css" scoped>
+.gm-style-iw-chr {display: none!important;}
 
+</style>
 <script setup lang="ts">
 
-import { Loader } from '@googlemaps/js-api-loader';
-const config = useRuntimeConfig()
 console.log("public")
 // console.log("config:",config)
 // console.log("config:",config.public.googlemapKey)
@@ -92,7 +85,12 @@ function ConvertLatLngDDMMtoDD(SetlatNm: Number, SetLngNm: Number) {
   return { latitude: lati, longitude: lng };
 }
 
+const slideover = useSlideover()
+
+const gmap = ref<HTMLElement>()
+
 function select(row: components["schemas"]["dtakologsSchema"]) {
+
   const index = selected.value.findIndex(item => item.VehicleName === row.VehicleName && item.DataDateTime == row.DataDateTime)
 
   const index2 = data.value?.findIndex(item => {
@@ -104,6 +102,7 @@ function select(row: components["schemas"]["dtakologsSchema"]) {
     return item.VehicleName === row.VehicleName && item.DataDateTime.value == row.DataDateTime.value
     // item.GPSLatitude
   })
+  gmap.value?.classList.remove("hidden")
 
 
   console.log("filteredRows.value:", filteredRows.value)
@@ -116,6 +115,8 @@ function select(row: components["schemas"]["dtakologsSchema"]) {
   isOpen.value = selected.value.length ? true : false
 
 
+
+  console.log("gmap.value:", gmap.value)
   if (gmap.value != undefined && index2 != -1 && index2 != undefined) {
     console.log("row.GPSLatitude/100000:", row.GPSLatitude / 1000000)
 
@@ -125,7 +126,7 @@ function select(row: components["schemas"]["dtakologsSchema"]) {
       {
 
         center: new google.maps.LatLng(latitude, longitude),
-        zoom: 12,
+        zoom: 17,
         mapId: "DEMO_MAP_ID", // Map ID is required for advanced markers.
       }
     )
@@ -159,12 +160,17 @@ function select(row: components["schemas"]["dtakologsSchema"]) {
       position: new google.maps.LatLng(latitude, longitude),
       // title: "test",
       // content: img,
+      
       content: pinSvg,
+      title:"test"
       // content: arrow_icon,
 
       // icon
 
     })
+    const info =new InfoWindow({content:"st"})
+    
+    info.open(mm,marker)
     console.log(marker)
   }
 
@@ -198,9 +204,8 @@ const columns = [
 
 const q = ref("");
 
-const gmap = ref<HTMLElement>()
 const { $loader } = useNuxtApp()
-const { Map } = await $loader.importLibrary("maps")
+const { Map,InfoWindow } = await $loader.importLibrary("maps")
 const { AdvancedMarkerElement, PinElement } = await $loader.importLibrary("marker")
 
 const mapOptions = {
@@ -212,6 +217,7 @@ const mapOptions = {
 };
 
 onMounted(async () => {
+
   // const req = useRequestEvent();
   // console.log("req:", req);
   // const dd1 = await $fetch("/api/user");
