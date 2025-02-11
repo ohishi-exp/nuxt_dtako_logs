@@ -1,6 +1,33 @@
 <template>
-  <div>
-    <div ref="gmap" class="h-[500px] w-[800px] hidden"></div>
+  <div class="grid-rows-3">
+    <div class="grid-rows-1 flex hidden" ref="hiddenEl">
+      <div ref="gmap" class="h-[500px] w-[800px] hidden"></div>
+
+      <UTable :rows="data2" :columns="columns" @select="select" :ui="{
+        base: ' border-separate border-spacing-0',
+        wrapper: 'max-full h-[50vh] border border-white',
+        th: {
+          base:
+            'text-center rtl:text-right border-white border border-separate sticky top-0 dark:bg-black',
+        },
+      }">
+        <template #DataDateTime-data="{ row }">
+          <DateShortDatetimeSt :date="row.DataDateTime" />
+        </template>
+
+        <template #AllState-data="{ row }">
+          <div class="mx-auto text-center">
+            {{
+              row.AllState == null ? "" : row.AllState
+                .replace("Drive", "運転")
+                .replace("Break", "休憩")
+                .replace("Rest", "休息")
+                .replace("End", "終了")
+            }}
+          </div>
+        </template>
+      </UTable>
+    </div>
     <UButton label="Open" @click="isOpen = true" />
     <UButton :icon="isDark ? 'i-heroicons-moon-20-solid' : 'i-heroicons-sun-20-solid'" color="gray" variant="ghost"
       aria-label="Theme" @click="isDark = !isDark" />
@@ -51,8 +78,6 @@
 <script setup lang="ts">
 
 console.log("public")
-// console.log("config:",config)
-// console.log("config:",config.public.googlemapKey)
 
 
 
@@ -65,6 +90,8 @@ const selected = ref<components["schemas"]["dtakologsSchema"][]>([])
 //   console.log(v1)
 // })
 const isOpen = ref(false)
+
+const hiddenEl = ref<HTMLElement>()
 
 function ConvertLatLngDDMMtoDD(SetlatNm: Number, SetLngNm: Number) {
 
@@ -99,8 +126,8 @@ const slideover = useSlideover()
 
 const gmap = ref<HTMLElement>()
 
-function select(row: components["schemas"]["dtakologsSchema"]) {
-
+async function select(row: components["schemas"]["dtakologsSchema"]) {
+  console.log("row:",row)
   const index = selected.value.findIndex(item => item.VehicleName === row.VehicleName && item.DataDateTime == row.DataDateTime)
 
   const index2 = data.value?.findIndex(item => {
@@ -113,6 +140,7 @@ function select(row: components["schemas"]["dtakologsSchema"]) {
     // item.GPSLatitude
   })
   gmap.value?.classList.remove("hidden")
+  hiddenEl.value?.classList.remove("hidden")
 
 
   console.log("filteredRows.value:", filteredRows.value)
@@ -167,6 +195,21 @@ function select(row: components["schemas"]["dtakologsSchema"]) {
       // icon
 
     })
+
+
+    console.log("row.VehicleCD:", row.VehicleCD)
+    data2.value = await $jsonPlaceholder("/api/dtakologs/view", {
+      method: "POST",
+      body: {
+        VehicleCD: row.VehicleCD,
+        DataDateTime: null
+      },
+
+    })
+
+
+    console.log("data2.value:", data2.value)
+
 
     var sst = "<p style='color:black'>"
     columns.forEach((v) => {
@@ -256,6 +299,8 @@ onMounted(async () => {
 
 });
 
+const data2 = ref()
+
 
 const { data, status, error, refresh, clear } = useJsonPlaceholderData("/api/dtakologs/currentListAll", {
   // client:true,
@@ -266,6 +311,7 @@ const { data, status, error, refresh, clear } = useJsonPlaceholderData("/api/dta
       GPSLatitude: dd.GPSLatitude,
       GPSLongitude: dd.GPSLongitude,
 
+      VehicleCD: dd.VehicleCD,
       VehicleName: dd.VehicleName,
       DriverName: dd.DriverName,
       AddressDispC: dd.AddressDispC,
