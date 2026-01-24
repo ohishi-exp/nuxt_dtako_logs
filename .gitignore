@@ -25,3 +25,6 @@ logs
 .claude/skills
 tools
 rust-logi_ref/
+
+# Rust build output
+target/
