@@ -38,8 +38,23 @@ export default defineEventHandler(async (event) => {
     headers.set('Connect-Protocol-Version', connectProtocol)
   }
 
-  // リクエストボディを取得
-  const body = method === 'POST' ? await readRawBody(event) : undefined
+  // リクエストボディを取得（バイナリとして読み込む）
+  const body = method === 'POST' ? await readRawBody(event, false) : undefined
+
+  // デバッグログ
+  console.log('[grpc-proxy] path:', path)
+  console.log('[grpc-proxy] method:', method)
+  console.log('[grpc-proxy] content-type:', contentType)
+  console.log('[grpc-proxy] connect-protocol:', connectProtocol)
+  console.log('[grpc-proxy] body type:', typeof body)
+  console.log('[grpc-proxy] body is Buffer:', body instanceof Buffer)
+  console.log('[grpc-proxy] body is ArrayBuffer:', body instanceof ArrayBuffer)
+  console.log('[grpc-proxy] body is Uint8Array:', body instanceof Uint8Array)
+  if (body) {
+    const bodyBytes = body instanceof Buffer ? body : new Uint8Array(body as ArrayBuffer)
+    console.log('[grpc-proxy] body length:', bodyBytes.length)
+    console.log('[grpc-proxy] body first 20 bytes:', Array.from(bodyBytes.slice(0, 20)))
+  }
 
   // Service Binding経由でリクエスト
   const response = await grpcProxyService.fetch(targetUrl, {
@@ -47,6 +62,10 @@ export default defineEventHandler(async (event) => {
     headers,
     body,
   })
+
+  // レスポンスのデバッグログ
+  console.log('[grpc-proxy] response status:', response.status)
+  console.log('[grpc-proxy] response headers:', Object.fromEntries(response.headers.entries()))
 
   // レスポンスヘッダーを設定
   const responseHeaders = Object.fromEntries(response.headers.entries())

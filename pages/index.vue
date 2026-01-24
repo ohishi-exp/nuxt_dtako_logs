@@ -1,8 +1,8 @@
 <template>
   <div class="grid-rows-3">
 
-    <div class="flex place-content-end">
-
+    <div class="flex place-content-end items-center gap-2">
+      <span v-if="maxDateTime" class="text-sm">最新: {{ maxDateTime }}</span>
       <UButton label="Open" @click="isOpen = true" />
       <UButton :icon="isDark ? 'i-heroicons-moon-20-solid' : 'i-heroicons-sun-20-solid'" color="gray" variant="ghost"
       aria-label="Theme" @click="isDark = !isDark" />
@@ -213,7 +213,7 @@ const marker = ref<google.maps.marker.AdvancedMarkerElement>()
 var mm: google.maps.Map;
 
 // gRPC-Web composableを使用
-const { data, status, error, fetchCurrentListAll, fetchByDate } = useDtakologs()
+const { data, status, error, fetchCurrentListAll, fetchByDateRange } = useDtakologs()
 
 async function select(row: DtakologView) {
 
@@ -285,21 +285,29 @@ async function select(row: DtakologView) {
 
     console.log("row.VehicleCD:", row.VehicleCD)
 
-    var EntDate = null
+    // 日付範囲を計算（その日の0時から23:59:59まで）
+    let targetDate: Date
     if (DateD.value) {
-      var dt = new Date(new Date(DateD.value).setHours(new Date(DateD.value).getHours() + 6))
-      EntDate = dt.toLocaleDateString() + " " + dt.toLocaleTimeString()
+      targetDate = new Date(DateD.value)
+    } else {
+      // 日付未選択の場合は行のDataDateTimeを使用
+      targetDate = new Date(row.DataDateTime)
     }
 
-    console.log("EntDate:", EntDate)
+    // その日の開始と終了を計算
+    const startOfDay = new Date(targetDate)
+    startOfDay.setHours(0, 0, 0, 0)
+    const endOfDay = new Date(targetDate)
+    endOfDay.setHours(23, 59, 59, 999)
 
-    // gRPC-Webで日付指定のデータを取得
-    if (EntDate) {
-      data2.value = await fetchByDate({
-        dateTime: EntDate,
-        vehicleCd: row.VehicleCD,
-      })
-    }
+    console.log("fetchByDateRange:", { startOfDay, endOfDay, vehicleCd: row.VehicleCD })
+
+    // gRPC-Webで日付範囲指定のデータを取得
+    data2.value = await fetchByDateRange({
+      startDateTime: startOfDay.toISOString(),
+      endDateTime: endOfDay.toISOString(),
+      vehicleCd: row.VehicleCD,
+    })
 
 
     console.log("data2.value:", data2.value)
@@ -351,6 +359,23 @@ const columns = [
 ];
 
 const q = ref("");
+
+// 日時の最大値を計算
+const maxDateTime = computed(() => {
+  if (!data.value || data.value.length === 0) return null
+  const maxDate = data.value.reduce((max, item) => {
+    const itemDate = new Date(item.DataDateTime)
+    return itemDate > max ? itemDate : max
+  }, new Date(data.value[0].DataDateTime))
+  return maxDate.toLocaleString("ja-JP", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  })
+})
 
 
 const mapOptions = {

@@ -8,6 +8,7 @@ export default defineNuxtConfig({
     host: '0.0.0.0',
   },
   nitro: {
+    preset: 'cloudflare-module',
     prerender: {
       autoSubfolderIndex: false
     }

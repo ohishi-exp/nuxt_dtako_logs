@@ -1,5 +1,6 @@
 name = "nuxt-dtako-logs"
 compatibility_date = "2024-09-19"
+compatibility_flags = ["nodejs_compat"]
 main = "./.output/server/index.mjs"
 assets = { directory = "./.output/public/", binding = "ASSETS" }
 
