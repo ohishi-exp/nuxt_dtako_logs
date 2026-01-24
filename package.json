@@ -8,14 +8,18 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "deploy":"NITRO_PRESET=cloudflare_module nuxt build && wrangler deploy"
+    "deploy": "NITRO_PRESET=cloudflare_module nuxt build && wrangler deploy"
   },
   "dependencies": {
+    "@bufbuild/protobuf": "^2.10.2",
+    "@connectrpc/connect": "^2.1.1",
+    "@connectrpc/connect-web": "^2.1.1",
     "@googlemaps/js-api-loader": "^1.16.8",
     "@nuxt/ui": "2.21.0",
     "@types/google.maps": "^3.58.1",
     "@vite-pwa/nuxt": "0.10.6",
     "@vueuse/nuxt": "12.5.0",
+    "@yhonda-ohishi-pub-dev/logi-proto": "file:rust-logi_ref/packages/logi-proto",
     "nuxt": "^3.15.4",
     "nuxt-api-party": "2.1.2",
     "openapi-typescript": "^5 || ^6 || ^7",

@@ -81,14 +81,11 @@ const DateD = ref("")
 
 console.log("public")
 import { UInput } from '#components'
-import type { components } from '#nuxt-api-party/jsonPlaceholder'
 import AllState from '~/components/allState.vue'
+import type { DtakologView } from '~/composables/useDtakologs'
 
 
-const selected = ref<components["schemas"]["dtakologsSchema"][]>([])
-// watch(selected.value,(v1)=>{
-//   console.log(v1)
-// })
+const selected = ref<DtakologView[]>([])
 const isOpen = ref(false)
 
 const hiddenEl = ref<HTMLElement>()
@@ -117,7 +114,7 @@ const { $loader } = useNuxtApp()
 const { Map, InfoWindow } = await $loader.importLibrary("maps")
 const { AdvancedMarkerElement, PinElement } = await $loader.importLibrary("marker")
 
-const data2 = ref<components["schemas"]["dtakologsSchemaArray"]>([])
+const data2 = ref<DtakologView[]>([])
 
 
 const colorMode = useColorMode()
@@ -133,28 +130,8 @@ const slideover = useSlideover()
 
 const gmap = ref<HTMLElement>()
 
-// const mm = ref<google.maps.Map>()
 
-
-
-// watch(() => gmap.value, (v) => {
-//   if (gmap.value != undefined) {
-
-//     mm.value = new Map(
-//       // const mm = new google.maps.Map(
-//       gmap.value,
-//       {
-
-//         center: new google.maps.LatLng(35, 135),
-//         zoom: 17,
-//         mapId: "DEMO_MAP_ID", // Map ID is required for advanced markers.
-//       }
-//     )
-//   }
-// })
-
-
-async function select2(row: components["schemas"]["dtakologsSchema"]) {
+async function select2(row: DtakologView) {
 
   const index2 = data2.value?.findIndex(item => {
     console.log(item)
@@ -163,22 +140,12 @@ async function select2(row: components["schemas"]["dtakologsSchema"]) {
     console.log("item.DataDateTime:", item.DataDateTime)
     console.log("row.DataDateTime:", row.DataDateTime)
     return item.VehicleName === row.VehicleName && item.DataDateTime == row.DataDateTime
-    // item.GPSLatitude
   })
 
   if (gmap.value != undefined && index2 != -1 && index2 != undefined) {
     console.log("row.GPSLatitude/100000:", row.GPSLatitude / 1000000)
 
     const { latitude, longitude } = ConvertLatLngDDMMtoDD(row.GPSLatitude, row.GPSLongitude)
-    // mm.value = new Map(
-    //   gmap.value,
-    //   {
-
-    //     center: new google.maps.LatLng(latitude, longitude),
-    //     zoom: 17,
-    //     mapId: "DEMO_MAP_ID", // Map ID is required for advanced markers.
-    //   }
-    // )
     mm.setCenter(new google.maps.LatLng(latitude, longitude))
 
     const parser = new DOMParser();
@@ -206,19 +173,10 @@ async function select2(row: components["schemas"]["dtakologsSchema"]) {
     const marker = new AdvancedMarkerElement({
       map: mm,
       position: new google.maps.LatLng(latitude, longitude),
-      // title: "test",
-      // content: img,
-
-
       gmpDraggable: true,
       content: pinSvg,
       title: "test",
-      // zIndex: 200,
-      // content: arrow_icon,
-
       gmpClickable: true
-      // icon
-
     })
 
     var sst = "<p style='color:black'>"
@@ -227,10 +185,10 @@ async function select2(row: components["schemas"]["dtakologsSchema"]) {
       if (v.key) {
         switch (v.key) {
           case "DataDateTime":
-            sst += v.label + ":" + new Date(row[v.key]).toLocaleTimeString("ja-jp", { year: "2-digit", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", "second": "2-digit" }) + "<br>"
+            sst += v.label + ":" + new Date(row[v.key as keyof DtakologView] as string).toLocaleTimeString("ja-jp", { year: "2-digit", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", "second": "2-digit" }) + "<br>"
             break
           default:
-            sst += v.label + ":" + row[v.key] + "<br>"
+            sst += v.label + ":" + row[v.key as keyof DtakologView] + "<br>"
         }
       }
     })
@@ -239,7 +197,6 @@ async function select2(row: components["schemas"]["dtakologsSchema"]) {
     const info = new InfoWindow({ content: sst })
     marker.addListener("click", () => {
       console.log("click")
-      // const {target}=ev
       info.close()
       info.setContent(sst)
       info.open({ anchor: marker, map: mm })
@@ -255,11 +212,11 @@ async function select2(row: components["schemas"]["dtakologsSchema"]) {
 const marker = ref<google.maps.marker.AdvancedMarkerElement>()
 var mm: google.maps.Map;
 
-async function select(row: components["schemas"]["dtakologsSchema"]) {
+// gRPC-Web composableを使用
+const { data, status, error, fetchCurrentListAll, fetchByDate } = useDtakologs()
 
+async function select(row: DtakologView) {
 
-  // console.log("dated:", DateD.value)
-  // console.log("row:", row)
   const index = selected.value.findIndex(item => item.VehicleName === row.VehicleName && item.DataDateTime == row.DataDateTime)
 
   const index2 = data.value?.findIndex(item => {
@@ -269,7 +226,6 @@ async function select(row: components["schemas"]["dtakologsSchema"]) {
     console.log("item.DataDateTime:", item.DataDateTime)
     console.log("row.DataDateTime:", row.DataDateTime)
     return item.VehicleName === row.VehicleName && item.DataDateTime == row.DataDateTime
-    // item.GPSLatitude
   })
   gmap.value?.classList.remove("hidden")
   hiddenEl.value?.classList.remove("hidden")
@@ -318,22 +274,11 @@ async function select(row: components["schemas"]["dtakologsSchema"]) {
     beachFlagImg.src = 'https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png';
 
 
-    // console.log(mm.value)
     const marker = new AdvancedMarkerElement({
-      // map: mm.value,
       map: mm,
       position: new google.maps.LatLng(latitude, longitude),
-      // title: "test",
-      // content: img,
-
       content: pinSvg,
       title: "test",
-      // zIndex: 400
-      // content: arrow_icon,
-      // content: beachFlagImg,
-
-      // icon
-
     })
 
     console.log("marker.value:", marker)
@@ -343,21 +288,18 @@ async function select(row: components["schemas"]["dtakologsSchema"]) {
     var EntDate = null
     if (DateD.value) {
       var dt = new Date(new Date(DateD.value).setHours(new Date(DateD.value).getHours() + 6))
-      // dt = new Date(dt.setHours(dt.getHours() - 9))
-      // console.log("dt:",dt)
       EntDate = dt.toLocaleDateString() + " " + dt.toLocaleTimeString()
     }
 
-
     console.log("EntDate:", EntDate)
-    data2.value = await $jsonPlaceholder("/api/dtakologs/view", {
-      method: "POST",
-      body: {
-        VehicleCD: row.VehicleCD,
-        DataDateTime: EntDate
-      },
 
-    })
+    // gRPC-Webで日付指定のデータを取得
+    if (EntDate) {
+      data2.value = await fetchByDate({
+        dateTime: EntDate,
+        vehicleCd: row.VehicleCD,
+      })
+    }
 
 
     console.log("data2.value:", data2.value)
@@ -369,10 +311,10 @@ async function select(row: components["schemas"]["dtakologsSchema"]) {
       if (v.key) {
         switch (v.key) {
           case "DataDateTime":
-            sst += v.label + ":" + new Date(row[v.key]).toLocaleTimeString("ja-jp", { year: "2-digit", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", "second": "2-digit" }) + "<br>"
+            sst += v.label + ":" + new Date(row[v.key as keyof DtakologView] as string).toLocaleTimeString("ja-jp", { year: "2-digit", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", "second": "2-digit" }) + "<br>"
             break
           default:
-            sst += v.label + ":" + row[v.key] + "<br>"
+            sst += v.label + ":" + row[v.key as keyof DtakologView] + "<br>"
         }
       }
     })
@@ -384,27 +326,17 @@ async function select(row: components["schemas"]["dtakologsSchema"]) {
 
     marker.addListener("click", () => {
       console.log("click")
-      // const {target}=ev
       info.close()
       info.setContent(sst)
       info.open({ anchor: marker, map: mm })
 
     })
-    // info.open(mm, marker)
     console.log(marker)
   }
 
   console.log("index,row:", index, row)
 }
 
-// th: { base: 'sticky top-0' },
-// wrapper: 'border-separate',
-// <!-- :ui="{
-// }" -->
-// import { schemas } from "../../../test";
-// import { z } from "zod";
-
-// type dtakologsSchema = z.infer<typeof schemas.dtakologsSchema>;
 const columns = [
   { key: "VehicleName", label: "車番" },
   { key: "DriverName", label: "氏名" },
@@ -414,10 +346,6 @@ const columns = [
   { key: "AddressDispC", label: "位置" },
   { key: "AddressDispP", label: "場所" },
   { key: "SubDriverCD", label: "助手CD" },
-  // { key: "AllStateRyoutColor", label: "状況" },
-  // { key: "AllStateEx", label: "AllStateEx" },
-  // { key: "AllStateFontColor", label: "AllStateFontColor" },
-  // { key: "ReciveTypeColorName", label: "ReciveTypeColorName" },
   { key: "Speed", label: "速度" },
   { key: "Button", label: "place" },
 ];
@@ -438,63 +366,20 @@ onMounted(async () => {
   if (gmap.value != undefined) {
 
     mm = new Map(
-      // const mm = new google.maps.Map(
       gmap.value,
       {
 
         center: new google.maps.LatLng(35, 135),
         zoom: 17,
-        mapId: "DEMO_MAP_ID", // Map ID is required for advanced markers.
+        mapId: "DEMO_MAP_ID",
       }
     )
   }
-  // const req = useRequestEvent();
-  // console.log("req:", req);
-  // const dd1 = await $fetch("/api/user");
-  // console.log("dd1:", dd1)
 
-
-  // const loader = new Loader({
-  //   apiKey: config.public.googlemapKey,
-  //   version: "weekly",
-  //   libraries: ["places","marker"]
-  // });
-
-
-
+  // gRPC-Webで最新運行ログを取得
+  await fetchCurrentListAll()
 });
 
-
-const { data, status, error, refresh, clear } = useJsonPlaceholderData("/api/dtakologs/currentListAll", {
-  // client:true,
-
-  transform: (data) => {
-    return data.map((dd) => ({
-      GPSDirection: dd.GPSDirection,
-      GPSLatitude: dd.GPSLatitude,
-      GPSLongitude: dd.GPSLongitude,
-
-      VehicleCD: dd.VehicleCD,
-      VehicleName: dd.VehicleName,
-      DriverName: dd.DriverName,
-      AddressDispC: dd.AddressDispC,
-      DataDateTime: dd.DataDateTime,
-      AddressDispP: dd.AddressDispP,
-      SubDriverCD: dd.SubDriverCD,
-      AllState: dd.AllState == null ? "" : dd.AllState,
-      ReciveTypeColorName: dd.ReciveTypeColorName,
-      AllStateEx: dd.AllStateEx,
-      State2:
-        dd.AllState != null
-          ? ["Drive", "Rest", "Break"].includes(dd.AllState)
-            ? dd.State2
-            : ""
-          : "",
-      AllStateFontColor: dd.AllStateFontColor,
-      Speed: dd.Speed == 0 ? "" : dd.Speed,
-    }));
-  },
-});
 
 const filteredRows = computed(() => {
   if (!q.value) {
@@ -506,8 +391,6 @@ const filteredRows = computed(() => {
 
     const filter = data.value.filter((dd) => {
       return Object.values(dd).some((value) => {
-        // console.log(value)
-        // console.log("q", q.value);
         const st = q.value.replace("\n", "").replace("\r\n", "");
         return String(value).includes(st);
       });
@@ -515,7 +398,6 @@ const filteredRows = computed(() => {
     return filter != null ? filter : undefined
   } else {
     return undefined
-    data.value
   }
 });
 </script>
