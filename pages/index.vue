@@ -12,37 +12,40 @@
         <UInput placeholder="Search..." v-model="q"></UInput>
         <input type="date" v-model="DateD" class="disabled:cursor-not-allowed disabled:opacity-75 focus:outline-none border"/>
       </div>
-    <div class="grid-rows-1 flex hidden" ref="hiddenEl">
-      <div ref="gmap" class="h-[500px] w-[800px] hidden"></div>
+    <div class="flex justify-center">
+      <div class="inline-flex flex-col">
+        <div class="hidden" ref="hiddenEl">
+          <div class="flex border border-white">
+            <div ref="gmap" class="h-[500px] min-w-[485px] border-r border-white"></div>
+            <UTable :rows="data2" :columns="columns" @select="select2" :ui="{
+              base: ' border-separate border-spacing-0',
+              wrapper: 'h-[500px] overflow-auto',
+            tr: {
+              active: 'hover:bg-gray-200 dark:hover:bg-gray-100/50 cursor-pointer'
+            },
+            th: {
+              base:
+                'text-center rtl:text-right border-black bg-white border-l border-l-black last:border-r last:border-r-black border-y border-separate sticky top-0 dark:bg-black z-30',
+            },
+            td: {
 
-      <UTable :rows="data2" :columns="columns" @select="select2" :ui="{
-        base: ' border-separate border-spacing-0',
-        wrapper: 'max-full h-[50vh] border border-white',
-        tr: {
-          active: 'hover:bg-gray-200 dark:hover:bg-gray-100/50 cursor-pointer'
-        },
-        th: {
-          base:
-            'text-center rtl:text-right border-black bg-white border-l border-l-black last:border-r last:border-r-black border-y border-separate sticky top-0 dark:bg-black z-30',
-        },
-        td: {
+              base: 'border-l border-l-black last:border-r last:border-r-black',
+              padding: 'px-1 py-0'
+            }
+          }">
+            <template #DataDateTime-data="{ row }">
+              <DateDataDatetimeSt :date="row.DataDateTime" />
+            </template>
 
-          base: 'border-l border-l-black last:border-r last:border-r-black',
-          padding: 'px-1 py-0'
-        }
-      }">
-        <template #DataDateTime-data="{ row }">
-          <DateDataDatetimeSt :date="row.DataDateTime" />
-        </template>
-
-        <template #AllState-data="{ row }">
-          <AllState :all-state="row.AllState" />
-        </template>
-      </UTable>
-    </div>
-    <UTable v-model="selected" @select="select" :rows="filteredRows" :ui="{
-      base: ' border-separate border-spacing-0',
-      wrapper: 'max-full h-screen border border-white lg:w-max mx-auto',
+            <template #AllState-data="{ row }">
+              <AllState :all-state="row.AllState" />
+            </template>
+          </UTable>
+          </div>
+        </div>
+        <UTable v-model="selected" @select="select" :rows="filteredRows" :ui="{
+          base: ' border-separate border-spacing-0',
+          wrapper: 'max-full h-screen border border-white',
       tr: {
         active: 'hover:bg-gray-200 dark:hover:bg-gray-100/50 cursor-pointer'
       },
@@ -69,6 +72,8 @@
       <template #Button-data="{ row }">
       </template>
     </UTable>
+      </div>
+    </div>
   </div>
 
 
