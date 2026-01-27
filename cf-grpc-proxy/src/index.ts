@@ -7,6 +7,7 @@
 
 export interface Env {
   RUST_LOGI_URL: string;
+  RUST_LOGI_PROXY_URL: string;
   GCP_SERVICE_ACCOUNT_JSON: string;
   GRPC_PROXY: DurableObjectNamespace;
 }
@@ -60,21 +61,21 @@ export class GrpcProxyDO implements DurableObject {
     }
 
     try {
-      // IAMトークン取得（キャッシュ済みなら再利用）
       const idToken = await this.getOrRefreshToken();
 
-      // CloudRunへプロキシ
+      // CloudRunへプロキシ（カスタムドメイン経由）
       const url = new URL(request.url);
-      const targetUrl = `${this.env.RUST_LOGI_URL}${url.pathname}`;
+      const targetUrl = `${this.env.RUST_LOGI_PROXY_URL}${url.pathname}`;
 
       const proxyHeaders = new Headers(request.headers);
       proxyHeaders.set('Authorization', `Bearer ${idToken}`);
       proxyHeaders.delete('Host');
 
+      const bodyBuffer = await request.arrayBuffer();
       const proxyResponse = await fetch(targetUrl, {
         method: 'POST',
         headers: proxyHeaders,
-        body: request.body,
+        body: bodyBuffer,
       });
 
       // レスポンスにCORSヘッダーを追加
