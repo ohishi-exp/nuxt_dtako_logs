@@ -25,6 +25,7 @@ logs
 .claude/skills
 tools
 rust-logi_ref/
+cf-grpc-proxy/
 
 # Rust build output
 target/
