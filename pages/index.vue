@@ -12,10 +12,10 @@
         <UInput placeholder="Search..." v-model="q"></UInput>
         <input type="date" v-model="DateD" class="disabled:cursor-not-allowed disabled:opacity-75 focus:outline-none border"/>
       </div>
-    <div class="flex justify-center">
-      <div class="inline-flex flex-col">
+    <div>
+      <div>
         <div class="hidden" ref="hiddenEl">
-          <div class="flex border border-white">
+          <div class="flex border border-white mx-auto">
             <div ref="gmap" class="h-[500px] min-w-[485px] border-r border-white"></div>
             <UTable :rows="data2" :columns="columns" @select="select2" :ui="{
               base: ' border-separate border-spacing-0',

@@ -16,8 +16,13 @@ export default defineNuxtConfig({
 
   runtimeConfig:{
     public:{
-      googlemapKey:""
+      googlemapKey:"",
+      authWorkerUrl: process.env.NUXT_PUBLIC_AUTH_WORKER_URL || '',
     }
+  },
+
+  build: {
+    transpile: ['@yhonda-ohishi-pub-dev/logi-proto', '@bufbuild/protobuf', '@connectrpc/connect', '@connectrpc/connect-web'],
   },
 
   vite: {

@@ -38,6 +38,12 @@ export default defineEventHandler(async (event) => {
     headers.set('Connect-Protocol-Version', connectProtocol)
   }
 
+  // Auth ヘッダーを転送（Browser → Nuxt server → cf-grpc-proxy）
+  const authToken = getHeader(event, 'x-auth-token')
+  if (authToken) headers.set('x-auth-token', authToken)
+  const orgId = getHeader(event, 'x-organization-id')
+  if (orgId) headers.set('x-organization-id', orgId)
+
   // リクエストボディを取得（バイナリとして読み込む）
   const body = method === 'POST' ? await readRawBody(event, false) : undefined
 

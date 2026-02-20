@@ -14,9 +14,8 @@ const prop = withDefaults(defineProps<{
 }>(), {
     allState: "",
 })
-const cls = ref()
-onMounted(() => {
-    cls.value = prop.allState == "Drive"
+const cls = computed(() => {
+    const base = prop.allState == "Drive"
         ? " dark:!text-white py-2"
         : prop.allState?.includes("積み")
             ? "!bg-emerald-500 py-2"
@@ -27,9 +26,7 @@ onMounted(() => {
                     : prop.allState == "Rest"
                         ? "!bg-violet-400 py-2 text-black"
                         : "py-2"
-
-    cls.value+=" mx-auto text-center "
-
+    return base + " mx-auto text-center "
 })
 
 

@@ -8,3 +8,6 @@ assets = { directory = "./.output/public/", binding = "ASSETS" }
 [[services]]
 binding = "GRPC_PROXY_SERVICE"
 service = "cf-grpc-proxy"
+
+[vars]
+NUXT_PUBLIC_AUTH_WORKER_URL = "https://auth.mtamaramu.com"
