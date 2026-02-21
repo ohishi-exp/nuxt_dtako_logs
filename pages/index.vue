@@ -6,6 +6,7 @@
       <UButton label="Open" @click="isOpen = true" />
       <UButton :icon="isDark ? 'i-heroicons-moon-20-solid' : 'i-heroicons-sun-20-solid'" color="gray" variant="ghost"
       aria-label="Theme" @click="isDark = !isDark" />
+      <AuthToolbar />
     </div>
       <div class="flex  place-content-end">
 
@@ -86,6 +87,7 @@ const DateD = ref("")
 
 console.log("public")
 import { UInput } from '#components'
+import { AuthToolbar } from '@yhonda-ohishi-pub-dev/auth-client'
 import AllState from '~/components/allState.vue'
 import type { DtakologView } from '~/composables/useDtakologs'
 
