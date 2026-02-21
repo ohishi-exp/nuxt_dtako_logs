@@ -11,3 +11,7 @@ service = "cf-grpc-proxy"
 
 [vars]
 NUXT_PUBLIC_AUTH_WORKER_URL = "https://auth.mtamaramu.com"
+
+[[routes]]
+pattern = "ohishi2.mtamaramu.com"
+custom_domain = true
