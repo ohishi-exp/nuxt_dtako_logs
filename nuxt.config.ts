@@ -146,7 +146,7 @@ export default defineNuxtConfig({
     },
     workbox: { // なんか必要
       navigateFallback: null,
-      globPatterns: ['**/*.{js,css,html,ico,png,svg}'] //https://vite-pwa-org.netlify.app/guide/service-worker-precache.html
+      globPatterns: ['**/*.{js,css,ico,png,svg}'], // htmlはSSRなのでprecache対象外
     },
     devOptions: { // テスト用
       enabled: true,
