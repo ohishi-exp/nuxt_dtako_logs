@@ -12,7 +12,7 @@ export default defineNuxtPlugin({
   name: 'auth',
   enforce: 'pre',
   setup() {
-    const { consumeFragment, loadFromStorage, isAuthenticated, redirectToLogin, authState, saveLwDomain } = useAuth()
+    const { consumeFragment, loadFromStorage, recoverFromCookie, isAuthenticated, redirectToLogin, authState, saveLwDomain } = useAuth()
 
     // 0. ?lw=<domain> パラメータ → LINE WORKS ドメイン保存
     const urlParams = new URLSearchParams(window.location.search)
@@ -48,6 +48,11 @@ export default defineNuxtPlugin({
     if (!foundInFragment) {
       // 2. localStorage から復元
       loadFromStorage()
+    }
+
+    // 2.5. Cookie からの復旧（トップページや他アプリで認証済みの場合）
+    if (!isAuthenticated.value) {
+      recoverFromCookie()
     }
 
     // 3. 未認証 → ログイン画面へ（redirectToLogin 内で lw_domain をチェック）
