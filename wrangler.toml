@@ -4,6 +4,10 @@ compatibility_flags = ["nodejs_compat"]
 main = "./.output/server/index.mjs"
 assets = { directory = "./.output/public/", binding = "ASSETS" }
 
+[observability]
+enabled = true
+head_sampling_rate = 1
+
 # Service Binding: cf-grpc-proxyのDurable Objectに接続
 [[services]]
 binding = "GRPC_PROXY_SERVICE"
