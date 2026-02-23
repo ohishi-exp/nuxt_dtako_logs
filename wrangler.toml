@@ -4,6 +4,9 @@ compatibility_flags = ["nodejs_compat"]
 main = "./.output/server/index.mjs"
 assets = { directory = "./.output/public/", binding = "ASSETS" }
 
+[build]
+command = "npm run build"
+
 [observability]
 enabled = true
 head_sampling_rate = 1

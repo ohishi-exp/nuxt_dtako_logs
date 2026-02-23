@@ -2090,10 +2090,12 @@
   dependencies:
     vue "^3.5.13"
 
-"@yhonda-ohishi-pub-dev/auth-client@^0.1.4":
-  version "0.1.6"
-  resolved "https://npm.pkg.github.com/download/@yhonda-ohishi-pub-dev/auth-client/0.1.6/4c8710a09d03b1af316906b3da83f5abde2bb9ff"
-  integrity sha512-2hLWg6a4tTsn2AySc4IKE8UXv85PUMUgx5mAn0sXhKC2ro7Ef8W0Zdz2M1DRbzVihSSlqVqVxB9IxRbtxSAVkQ==
+"@yhonda-ohishi-pub-dev/auth-client@^0.1.10":
+  version "0.1.10"
+  resolved "https://npm.pkg.github.com/download/@yhonda-ohishi-pub-dev/auth-client/0.1.10/2b9d6524b05453916d9d70721854b17775ec8f85"
+  integrity sha512-l562I0aFss0IK5Xiec2Rk1vC2f78cKCtRNVZcXZqmt8UcKcoPx9D2PXFTZfxYab5mdjEN4h9BFXEq/JesxM8Zg==
+  dependencies:
+    uqr "^0.1.2"
 
 "@yhonda-ohishi-pub-dev/logi-proto@file:rust-logi_ref/packages/logi-proto":
   version "0.1.6"

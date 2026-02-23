@@ -19,7 +19,7 @@
     "@types/google.maps": "^3.58.1",
     "@vite-pwa/nuxt": "0.10.6",
     "@vueuse/nuxt": "12.5.0",
-    "@yhonda-ohishi-pub-dev/auth-client": "^0.1.4",
+    "@yhonda-ohishi-pub-dev/auth-client": "^0.1.10",
     "@yhonda-ohishi-pub-dev/logi-proto": "file:rust-logi_ref/packages/logi-proto",
     "nuxt": "^3.15.4",
     "nuxt-api-party": "2.1.2",
