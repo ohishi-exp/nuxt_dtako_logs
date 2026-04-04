@@ -17,6 +17,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '~': root,
+      '@yhonda-ohishi-pub-dev/auth-client': resolve(root, 'tests/mocks/auth-client.ts'),
     },
   },
 })
