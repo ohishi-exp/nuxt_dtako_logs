@@ -6,15 +6,12 @@ import {
 } from '../helpers/api-test-env'
 
 // ---------------------------------------------------------------------------
-// Mock useAuth (token provider)
+// Mock useAuth (token provider) + $fetch
 // ---------------------------------------------------------------------------
-vi.mock('~/composables/useAuth', () => ({
-  useAuth: () => ({ token: ref(jwtToken) }),
-}))
-
-// Mock $fetch — mock mode のみ
+import { ref } from 'vue'
+;(globalThis as any).useAuth = () => ({ token: ref(jwtToken) })
 if (!isLive) {
-  vi.stubGlobal('$fetch', mockFetch)
+  ;(globalThis as any).$fetch = mockFetch
 }
 
 // ---------------------------------------------------------------------------
