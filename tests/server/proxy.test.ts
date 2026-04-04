@@ -184,7 +184,7 @@ describe('proxy handler', () => {
     ;(globalThis as any).useRuntimeConfig = () => ({ alcApiUrl: '', public: {} })
     await handler(makeEvent({ path: 'test' }))
     const url = mockFetch.mock.calls[0][0].toString()
-    expect(url).toContain('rust-alc-api-747065218280')
+    expect(url).toContain('alc-api.ippoan.org')
     // Restore
     ;(globalThis as any).useRuntimeConfig = () => ({ alcApiUrl: 'https://test-api.example.com', public: {} })
   })
