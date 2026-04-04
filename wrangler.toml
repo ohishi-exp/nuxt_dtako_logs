@@ -14,7 +14,7 @@ head_sampling_rate = 1
 
 [vars]
 NUXT_PUBLIC_AUTH_WORKER_URL = "https://alc-api.ippoan.org"
-NUXT_ALC_API_URL = "https://rust-alc-api-747065218280.asia-northeast1.run.app"
+NUXT_ALC_API_URL = "https://alc-api.ippoan.org"
 
 [[routes]]
 pattern = "ohishi2.mtamaramu.com"
