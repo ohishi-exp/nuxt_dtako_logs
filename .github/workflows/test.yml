@@ -15,7 +15,7 @@ jobs:
   ci:
     uses: ippoan/ci-workflows/.github/workflows/frontend-ci.yml@main
     with:
-      has_tests: false
+      has_tests: true
       install_command: 'npm install'
       post_install_script: 'npx nuxt prepare'
       npm_scope: '@yhonda-ohishi-pub-dev'

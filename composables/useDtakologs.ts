@@ -1,12 +1,8 @@
 /**
  * Dtakologs Composable
  *
- * gRPC-Web経由でDtakologsServiceを呼び出すためのcomposable
+ * REST API経由でdtakologsを取得
  */
-
-import type { Dtakolog } from "@yhonda-ohishi-pub-dev/logi-proto"
-import { create, toBinary } from "@bufbuild/protobuf"
-import { GetDateRequestSchema } from "@yhonda-ohishi-pub-dev/logi-proto"
 
 // フロントエンド用の型定義（既存のスキーマと互換）
 export interface DtakologView {
@@ -28,35 +24,19 @@ export interface DtakologView {
   Speed: number | string
 }
 
-// protobufのDtakologをフロントエンド用に変換
-function convertDtakolog(d: Dtakolog): DtakologView {
-  return {
-    GPSDirection: d.gpsDirection,
-    GPSLatitude: d.gpsLatitude,
-    GPSLongitude: d.gpsLongitude,
-    VehicleCD: d.vehicleCd,
-    VehicleName: d.vehicleName,
-    DriverName: d.driverName,
-    AddressDispC: d.addressDispC,
-    DataDateTime: d.dataDateTime,
-    AddressDispP: d.addressDispP,
-    SubDriverCD: d.subDriverCd,
-    AllState: d.allState ?? "",
-    ReciveTypeColorName: d.reciveTypeColorName,
-    AllStateEx: d.allStateEx,
-    State2: d.allState && ["Drive", "Rest", "Break"].includes(d.allState)
-      ? (d.state2 ?? "")
-      : "",
-    AllStateFontColor: d.allStateFontColor,
-    Speed: d.speed === 0 ? "" : d.speed,
-  }
-}
-
 export function useDtakologs() {
-  const { $grpc } = useNuxtApp()
+  const { token } = useAuth()
   const data = ref<DtakologView[]>([])
   const status = ref<'idle' | 'pending' | 'success' | 'error'>('idle')
   const error = ref<Error | null>(null)
+
+  function authHeaders(): Record<string, string> {
+    const headers: Record<string, string> = {}
+    if (token.value) {
+      headers['Authorization'] = `Bearer ${token.value}`
+    }
+    return headers
+  }
 
   /**
    * 車両毎の最新運行ログを取得
@@ -66,8 +46,10 @@ export function useDtakologs() {
     error.value = null
 
     try {
-      const response = await $grpc.dtakologs.currentListAll({})
-      data.value = response.dtakologs.map(convertDtakolog)
+      const response = await $fetch<DtakologView[]>('/api/proxy/dtako-logs/current', {
+        headers: authHeaders(),
+      })
+      data.value = response
       status.value = 'success'
     } catch (e) {
       error.value = e as Error
@@ -84,41 +66,16 @@ export function useDtakologs() {
     error.value = null
 
     try {
-      // ISO形式の日時を YY/MM/DD HH:MM 形式に変換
-      const date = new Date(request.dateTime)
-      const yy = String(date.getFullYear()).slice(-2)
-      const mm = String(date.getMonth() + 1).padStart(2, '0')
-      const dd = String(date.getDate()).padStart(2, '0')
-      const hh = String(date.getHours()).padStart(2, '0')
-      const min = String(date.getMinutes()).padStart(2, '0')
-      const formattedDateTime = `${yy}/${mm}/${dd} ${hh}:${min}`
+      const params = new URLSearchParams({ date_time: request.dateTime })
+      if (request.vehicleCd !== undefined) {
+        params.set('vehicle_cd', String(request.vehicleCd))
+      }
 
-      // protobuf-esのcreate()を使って正しいメッセージ型を作成
-      const grpcRequest = create(GetDateRequestSchema, {
-        dateTime: formattedDateTime,
-        vehicleCd: request.vehicleCd !== undefined ? Number(request.vehicleCd) : undefined,
-      })
-
-      // デバッグログ
-      console.log('fetchByDate input:', {
-        originalDateTime: request.dateTime,
-        originalVehicleCd: request.vehicleCd,
-        originalVehicleCdType: typeof request.vehicleCd,
-      })
-      console.log('fetchByDate grpcRequest:', {
-        dateTime: grpcRequest.dateTime,
-        vehicleCd: grpcRequest.vehicleCd,
-        vehicleCdType: typeof grpcRequest.vehicleCd,
-      })
-      console.log('fetchByDate grpcRequest JSON:', JSON.stringify(grpcRequest))
-
-      // シリアライズ結果をデバッグ
-      const binary = toBinary(GetDateRequestSchema, grpcRequest)
-      console.log('fetchByDate binary length:', binary.length)
-      console.log('fetchByDate binary bytes:', Array.from(binary))
-
-      const response = await $grpc.dtakologs.getDate(grpcRequest)
-      return response.dtakologs.map(convertDtakolog)
+      const response = await $fetch<DtakologView[]>(
+        `/api/proxy/dtako-logs/by-date?${params}`,
+        { headers: authHeaders() },
+      )
+      return response
     } catch (e) {
       error.value = e as Error
       status.value = 'error'
@@ -139,12 +96,16 @@ export function useDtakologs() {
     error.value = null
 
     try {
-      const response = await $grpc.dtakologs.currentListSelect({
-        addressDispP: request.addressDispP,
-        branchCd: request.branchCd,
-        vehicleCds: request.vehicleCds ?? [],
-      })
-      return response.dtakologs.map(convertDtakolog)
+      const params = new URLSearchParams()
+      if (request.addressDispP) params.set('address_disp_p', request.addressDispP)
+      if (request.branchCd !== undefined) params.set('branch_cd', String(request.branchCd))
+      if (request.vehicleCds?.length) params.set('vehicle_cds', request.vehicleCds.join(','))
+
+      const response = await $fetch<DtakologView[]>(
+        `/api/proxy/dtako-logs/current/select?${params}`,
+        { headers: authHeaders() },
+      )
+      return response
     } catch (e) {
       error.value = e as Error
       status.value = 'error'
@@ -165,12 +126,19 @@ export function useDtakologs() {
     error.value = null
 
     try {
-      const response = await $grpc.dtakologs.getDateRange({
-        startDateTime: request.startDateTime,
-        endDateTime: request.endDateTime,
-        vehicleCd: request.vehicleCd,
+      const params = new URLSearchParams({
+        start_date_time: request.startDateTime,
+        end_date_time: request.endDateTime,
       })
-      return response.dtakologs.map(convertDtakolog)
+      if (request.vehicleCd !== undefined) {
+        params.set('vehicle_cd', String(request.vehicleCd))
+      }
+
+      const response = await $fetch<DtakologView[]>(
+        `/api/proxy/dtako-logs/by-date-range?${params}`,
+        { headers: authHeaders() },
+      )
+      return response
     } catch (e) {
       error.value = e as Error
       status.value = 'error'
@@ -180,7 +148,7 @@ export function useDtakologs() {
   }
 
   return {
-    data: readonly(data),
+    data,
     status: readonly(status),
     error: readonly(error),
     fetchCurrentListAll,

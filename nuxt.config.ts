@@ -2,8 +2,7 @@
 export default defineNuxtConfig({
   compatibilityDate: '2024-11-01',
   devtools: { enabled: true },
-  modules: ['@vite-pwa/nuxt', "@nuxt/ui", '@vueuse/nuxt',
-    "nuxt-api-party"],
+  modules: ['@vite-pwa/nuxt', "@nuxt/ui", '@vueuse/nuxt'],
   devServer: {
     host: '0.0.0.0',
   },
@@ -15,6 +14,7 @@ export default defineNuxtConfig({
   },
 
   runtimeConfig:{
+    alcApiUrl: process.env.NUXT_ALC_API_URL || '',
     public:{
       googlemapKey:"",
       authWorkerUrl: process.env.NUXT_PUBLIC_AUTH_WORKER_URL || '',
@@ -22,7 +22,7 @@ export default defineNuxtConfig({
   },
 
   build: {
-    transpile: ['@yhonda-ohishi-pub-dev/logi-proto', '@yhonda-ohishi-pub-dev/auth-client', '@bufbuild/protobuf', '@connectrpc/connect', '@connectrpc/connect-web'],
+    transpile: ['@yhonda-ohishi-pub-dev/auth-client'],
   },
 
   vite: {
@@ -50,21 +50,6 @@ export default defineNuxtConfig({
     },
   },
   
-  apiParty: {
-    endpoints: {
-      jsonPlaceholder: {
-        url: `${process.env.NUXT_HONO_LOGI_URL}`,
-        schema: `${process.env.NUXT_HONO_LOGI_SCHEMA}`,
-        // headers:{
-        //   "CF-Access-Client-Id": `${process.env.NUXT_CF_ID}`,
-        //   "CF-Access-Client-Secret": `${process.env.NUXT_CF_SECRET}`
-        // },
-        // cookies:true
-      }
-    },
-    // client:true
-  },
-
   app: {
     head: {
       meta: [
