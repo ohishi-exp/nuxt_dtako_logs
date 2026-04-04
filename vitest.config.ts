@@ -9,11 +9,12 @@ export default defineVitestConfig({
         domEnvironment: 'happy-dom',
       },
     },
+    setupFiles: ['./tests/server/setup.ts'],
     include: ['tests/**/*.test.ts'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'text-summary', 'json-summary', 'html'],
-      include: ['composables/**/*.ts'],
+      include: ['composables/**/*.ts', 'server/**/*.ts'],
     },
   },
 })
