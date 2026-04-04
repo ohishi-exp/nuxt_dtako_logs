@@ -1,5 +1,7 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { getParentDomainFromHost, resolveAuthAction } from '../../server/middleware/auth'
+
+// --- Pure function tests ---
 
 function makeOpts(overrides: Partial<Parameters<typeof resolveAuthAction>[0]> = {}) {
   return {
@@ -83,5 +85,77 @@ describe('resolveAuthAction', () => {
     if (result.action !== 'redirect') return
     expect(result.url).toContain('auth.mtamaramu.com/login')
     expect(result.url).toContain('redirect_uri=')
+  })
+})
+
+// --- Handler wrapper tests (defineEventHandler) ---
+
+let lastRedirect: string | null = null
+let lastCookieSet: { name: string; value: string } | null = null
+
+vi.stubGlobal('getRequestURL', (event: any) =>
+  new URL(event.__testUrl || 'https://ohishi2.mtamaramu.com/'))
+vi.stubGlobal('getCookie', (event: any, name: string) => event.__testCookies?.[name])
+vi.stubGlobal('setCookie', (_e: any, name: string, value: string) => {
+  lastCookieSet = { name, value }
+})
+vi.stubGlobal('useRuntimeConfig', () => ({
+  public: { authWorkerUrl: 'https://alc-api.ippoan.org' },
+}))
+vi.stubGlobal('sendRedirect', (_e: any, url: string) => {
+  lastRedirect = url
+  return url
+})
+
+import handler from '../../server/middleware/auth'
+
+function makeEvent(opts: { url?: string; cookies?: Record<string, string> }) {
+  return {
+    __testUrl: opts.url || 'https://ohishi2.mtamaramu.com/',
+    __testCookies: opts.cookies || {},
+  } as any
+}
+
+describe('auth handler wrapper', () => {
+  beforeEach(() => {
+    lastRedirect = null
+    lastCookieSet = null
+    ;(globalThis as any).getRequestURL = (event: any) =>
+      new URL(event.__testUrl || 'https://ohishi2.mtamaramu.com/')
+    ;(globalThis as any).getCookie = (event: any, name: string) => event.__testCookies?.[name]
+    ;(globalThis as any).setCookie = (_e: any, name: string, value: string) => {
+      lastCookieSet = { name, value }
+    }
+    ;(globalThis as any).useRuntimeConfig = () => ({
+      public: { authWorkerUrl: 'https://alc-api.ippoan.org' },
+    })
+    ;(globalThis as any).sendRedirect = (_e: any, url: string) => {
+      lastRedirect = url
+      return url
+    }
+  })
+
+  it('handler skips when cookie exists', () => {
+    const result = handler(makeEvent({ cookies: { logi_auth_token: 'token' } }))
+    expect(result).toBeUndefined()
+    expect(lastRedirect).toBeNull()
+  })
+
+  it('handler redirects to default login', () => {
+    handler(makeEvent({}))
+    expect(lastRedirect).toContain('auth.mtamaramu.com/login')
+  })
+
+  it('handler redirects with lw param and sets cookie', () => {
+    handler(makeEvent({ url: 'https://ohishi2.mtamaramu.com/?lw=ohishi' }))
+    expect(lastRedirect).toContain('lineworks/redirect')
+    expect(lastCookieSet?.name).toBe('lw_domain')
+    expect(lastCookieSet?.value).toBe('ohishi')
+  })
+
+  it('handler redirects with stored lw_domain (no setCookie)', () => {
+    handler(makeEvent({ cookies: { lw_domain: 'saved' } }))
+    expect(lastRedirect).toContain('domain=saved')
+    expect(lastCookieSet).toBeNull()
   })
 })

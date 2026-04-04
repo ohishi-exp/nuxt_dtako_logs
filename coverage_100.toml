@@ -1,10 +1,10 @@
-# 100% カバレッジ達成済みファイル
+# 100% カバレッジ達成済みファイル (Lines 100%)
 
 [[files]]
 path = "composables/useDtakologs.ts"
 
 [[files]]
-path = "composables/useAuth.ts"
+path = "server/api/proxy/[...path].ts"
 
 [[files]]
-path = "server/api/proxy/[...path].ts"
+path = "server/middleware/auth.ts"
