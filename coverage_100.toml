@@ -1,4 +1,7 @@
-# 100% カバレッジ達成済みファイル (Lines 100%)
+# 100% カバレッジ達成済みファイル (Lines + Branch 100%)
+
+[[files]]
+path = "composables/useAuth.ts"
 
 [[files]]
 path = "composables/useDtakologs.ts"
