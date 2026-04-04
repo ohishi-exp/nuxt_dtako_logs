@@ -1,4 +1,5 @@
 name = "nuxt-dtako-logs"
+account_id = "24b45709d060d957340180e995f0d373"
 compatibility_date = "2024-09-19"
 compatibility_flags = ["nodejs_compat"]
 main = "./.output/server/index.mjs"
@@ -17,8 +18,13 @@ binding = "GRPC_PROXY_SERVICE"
 service = "cf-grpc-proxy"
 
 [vars]
-NUXT_PUBLIC_AUTH_WORKER_URL = "https://auth.mtamaramu.com"
+NUXT_PUBLIC_AUTH_WORKER_URL = "https://alc-api.ippoan.org"
 
 [[routes]]
 pattern = "ohishi2.mtamaramu.com"
 custom_domain = true
+
+[env.staging]
+name = "nuxt-dtako-logs-staging"
+[env.staging.vars]
+NUXT_PUBLIC_AUTH_WORKER_URL = "https://alc-api.ippoan.org"
