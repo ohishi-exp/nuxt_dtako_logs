@@ -44,9 +44,11 @@ function makeEvent(opts: {
 }
 
 function mockResponse(status: number, data: unknown = {}) {
+  const body = JSON.stringify(data)
   return {
     status,
     headers: new Map([['content-type', 'application/json']]),
+    text: () => Promise.resolve(body),
     json: () => Promise.resolve(data),
   }
 }
@@ -127,7 +129,7 @@ describe('proxy handler', () => {
   })
 
   it('returns null for 204', async () => {
-    mockFetch.mockResolvedValueOnce({ status: 204, headers: new Map() })
+    mockFetch.mockResolvedValueOnce({ status: 204, headers: new Map(), text: () => Promise.resolve('') })
     expect(await handler(makeEvent({ path: 'x' }))).toBeNull()
   })
 
@@ -153,7 +155,7 @@ describe('proxy handler', () => {
   })
 
   it('handles response without content-type', async () => {
-    mockFetch.mockResolvedValueOnce({ status: 200, headers: new Map(), json: () => Promise.resolve({}) })
+    mockFetch.mockResolvedValueOnce({ status: 200, headers: new Map(), text: () => Promise.resolve('{}') })
     expect(await handler(makeEvent({ path: 'x' }))).toEqual({})
   })
 
@@ -193,6 +195,16 @@ describe('proxy handler', () => {
     mockFetch.mockResolvedValueOnce(mockResponse(200))
     await handler(makeEvent({ path: 'x', headers: { 'x-auth-token': token } }))
     expect(mockFetch.mock.calls[0][1].headers['X-Tenant-ID']).toBe('org-from-xauth')
+  })
+
+  it('handles empty response body', async () => {
+    mockFetch.mockResolvedValueOnce({ status: 200, headers: new Map(), text: () => Promise.resolve('') })
+    expect(await handler(makeEvent({ path: 'x' }))).toBeNull()
+  })
+
+  it('handles non-JSON response body', async () => {
+    mockFetch.mockResolvedValueOnce({ status: 500, headers: new Map(), text: () => Promise.resolve('Internal Server Error') })
+    expect(await handler(makeEvent({ path: 'x' }))).toEqual({ error: 'Internal Server Error' })
   })
 
   it('no auth headers sends no tenant', async () => {
