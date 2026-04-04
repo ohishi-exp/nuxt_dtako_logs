@@ -1,19 +1,23 @@
-import { defineVitestConfig } from '@nuxt/test-utils/config'
+import { defineConfig } from 'vitest/config'
+import { resolve } from 'path'
 
-export default defineVitestConfig({
+const root = __dirname
+
+export default defineConfig({
   test: {
     globals: true,
-    environment: 'nuxt',
-    environmentOptions: {
-      nuxt: {
-        domEnvironment: 'happy-dom',
-      },
-    },
-    include: ['tests/**/*.test.ts'],
+    setupFiles: [resolve(root, 'tests/setup.ts')],
+    include: [resolve(root, 'tests/**/*.test.ts')],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'text-summary', 'json-summary', 'html'],
-      include: ['composables/**/*.ts'],
+      include: ['composables/**/*.ts', 'server/**/*.ts'],
+    },
+  },
+  resolve: {
+    alias: {
+      '~': root,
+      '@yhonda-ohishi-pub-dev/auth-client': resolve(root, 'tests/mocks/auth-client.ts'),
     },
   },
 })
