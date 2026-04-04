@@ -17,8 +17,11 @@ jobs:
     uses: ippoan/ci-workflows/.github/workflows/frontend-ci.yml@main
     with:
       has_tests: true
+      has_integration: true
       install_command: 'npm install'
       post_install_script: 'npx nuxt prepare'
       npm_scope: '@yhonda-ohishi-pub-dev'
+      integration_test_command: 'npx vitest run tests/integration'
+      integration_env: 'API_BASE_URL=http://localhost:18080'
     secrets:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
