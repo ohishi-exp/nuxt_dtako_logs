@@ -9,9 +9,9 @@
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
     "deploy": "NITRO_PRESET=cloudflare_module nuxt build && wrangler deploy",
-    "test": "vitest run --dir tests",
-    "test:watch": "vitest --dir tests",
-    "test:coverage": "vitest run --dir tests --coverage"
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@googlemaps/js-api-loader": "^1.16.8",

@@ -167,6 +167,34 @@ describe('proxy handler', () => {
     expect(hdrs['X-Tenant-ID']).toBeUndefined()
   })
 
+  it('falls back to empty path when getRouterParam returns undefined', async () => {
+    mockFetch.mockResolvedValueOnce(mockResponse(200))
+    const orig = (globalThis as any).getRouterParam
+    ;(globalThis as any).getRouterParam = () => undefined
+    await handler(makeEvent({ path: '' }))
+    const url = mockFetch.mock.calls[0][0].toString()
+    expect(url).toContain('/api/')
+    ;(globalThis as any).getRouterParam = orig
+  })
+
+  it('falls back to default URL when alcApiUrl is empty', async () => {
+    mockFetch.mockResolvedValueOnce(mockResponse(200))
+    ;(globalThis as any).useRuntimeConfig = () => ({ alcApiUrl: '', public: {} })
+    await handler(makeEvent({ path: 'test' }))
+    const url = mockFetch.mock.calls[0][0].toString()
+    expect(url).toContain('rust-alc-api-747065218280')
+    // Restore
+    ;(globalThis as any).useRuntimeConfig = () => ({ alcApiUrl: 'https://test-api.example.com', public: {} })
+  })
+
+  it('x-auth-token uses org claim as tenant fallback', async () => {
+    const payload = btoa(JSON.stringify({ org: 'org-from-xauth' }))
+    const token = `h.${payload}.s`
+    mockFetch.mockResolvedValueOnce(mockResponse(200))
+    await handler(makeEvent({ path: 'x', headers: { 'x-auth-token': token } }))
+    expect(mockFetch.mock.calls[0][1].headers['X-Tenant-ID']).toBe('org-from-xauth')
+  })
+
   it('no auth headers sends no tenant', async () => {
     mockFetch.mockResolvedValueOnce(mockResponse(200))
     await handler(makeEvent({ path: 'x' }))

@@ -1,14 +1,13 @@
 import { defineConfig } from 'vitest/config'
 import { resolve } from 'path'
 
+const root = __dirname
+
 export default defineConfig({
   test: {
     globals: true,
-    setupFiles: ['./tests/setup.ts'],
-    include: [
-      resolve(__dirname, 'tests/composables/*.test.ts'),
-      resolve(__dirname, 'tests/server/*.test.ts'),
-    ],
+    setupFiles: [resolve(root, 'tests/setup.ts')],
+    include: [resolve(root, 'tests/**/*.test.ts')],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'text-summary', 'json-summary', 'html'],
@@ -17,8 +16,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '~': resolve(__dirname),
-      '#imports': resolve(__dirname, 'tests/mocks/imports.ts'),
+      '~': root,
     },
   },
 })
