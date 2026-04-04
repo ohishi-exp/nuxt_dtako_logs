@@ -1,0 +1,7 @@
+# 100% カバレッジ達成済みファイル
+
+[[files]]
+path = "composables/useDtakologs.ts"
+
+[[files]]
+path = "composables/useAuth.ts"
