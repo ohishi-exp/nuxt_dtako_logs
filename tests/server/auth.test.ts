@@ -7,7 +7,7 @@ function makeOpts(overrides: Partial<Parameters<typeof resolveAuthAction>[0]> = 
   return {
     pathname: '/',
     cookie: undefined,
-    authWorkerUrl: 'https://alc-api.ippoan.org',
+    authWorkerUrl: 'https://auth.ippoan.org',
     hasLwCallback: false,
     hasLogout: false,
     lwParam: null,
@@ -57,7 +57,7 @@ describe('resolveAuthAction', () => {
     const result = resolveAuthAction(makeOpts({ lwParam: 'ohishi' }))
     expect(result.action).toBe('redirect')
     if (result.action !== 'redirect') return
-    expect(result.url).toContain('alc-api.ippoan.org/api/auth/lineworks/redirect')
+    expect(result.url).toContain('auth.ippoan.org/api/auth/lineworks/redirect')
     expect(result.url).toContain('domain=ohishi')
     expect(result.setCookie?.name).toBe('lw_domain')
     expect(result.setCookie?.value).toBe('ohishi')
@@ -100,7 +100,7 @@ vi.stubGlobal('setCookie', (_e: any, name: string, value: string) => {
   lastCookieSet = { name, value }
 })
 vi.stubGlobal('useRuntimeConfig', () => ({
-  public: { authWorkerUrl: 'https://alc-api.ippoan.org' },
+  public: { authWorkerUrl: 'https://auth.ippoan.org' },
 }))
 vi.stubGlobal('sendRedirect', (_e: any, url: string) => {
   lastRedirect = url
@@ -127,7 +127,7 @@ describe('auth handler wrapper', () => {
       lastCookieSet = { name, value }
     }
     ;(globalThis as any).useRuntimeConfig = () => ({
-      public: { authWorkerUrl: 'https://alc-api.ippoan.org' },
+      public: { authWorkerUrl: 'https://auth.ippoan.org' },
     })
     ;(globalThis as any).sendRedirect = (_e: any, url: string) => {
       lastRedirect = url
