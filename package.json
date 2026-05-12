@@ -19,7 +19,7 @@
     "@types/google.maps": "^3.58.1",
     "@vite-pwa/nuxt": "0.10.6",
     "@vueuse/nuxt": "12.5.0",
-    "@yhonda-ohishi-pub-dev/auth-client": "^0.1.31",
+    "@ippoan/auth-client": "^0.2.29",
     "nuxt": "^3.15.4",
     "typescript": "^5.7.3",
     "vue": "latest",
