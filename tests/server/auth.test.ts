@@ -83,7 +83,7 @@ describe('resolveAuthAction', () => {
     const result = resolveAuthAction(makeOpts())
     expect(result.action).toBe('redirect')
     if (result.action !== 'redirect') return
-    expect(result.url).toContain('auth.mtamaramu.com/login')
+    expect(result.url).toContain('auth.ippoan.org/login')
     expect(result.url).toContain('redirect_uri=')
   })
 })
@@ -143,7 +143,7 @@ describe('auth handler wrapper', () => {
 
   it('handler redirects to default login', () => {
     handler(makeEvent({}))
-    expect(lastRedirect).toContain('auth.mtamaramu.com/login')
+    expect(lastRedirect).toContain('auth.ippoan.org/login')
   })
 
   it('handler redirects with lw param and sets cookie', () => {

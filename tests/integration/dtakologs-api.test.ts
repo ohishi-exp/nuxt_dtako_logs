@@ -74,7 +74,7 @@ describe('dtakologs API', () => {
       const v2 = data.find((d: any) => d.VehicleCD === 2)
       expect(v1).toBeDefined()
       expect(v2).toBeDefined()
-      expect(v1.DataDateTime).toBe('26/04/04 10:05')
+      expect(v1.DataDateTime).toBe('2026-04-04T10:05:00+09:00')
       expect(v1.VehicleName).toBe('Truck-1')
       expect(v2.VehicleName).toBe('Truck-2')
     })
@@ -102,15 +102,15 @@ describe('dtakologs API', () => {
 
   describe('GET /dtako-logs/by-date', () => {
     it('returns records for specific date_time', async () => {
-      const res = await api('dtako-logs/by-date?date_time=26/04/04%2010:00')
+      const res = await api('dtako-logs/by-date?date_time=2026-04-04T10:00:00%2B09:00')
       expect(res.status).toBe(200)
       const data = await res.json()
-      // Seed has 2 records at 26/04/04 10:00 (vehicle 1 and 2)
+      // Seed has 2 records at 2026-04-04T10:00:00+09:00 (vehicle 1 and 2)
       expect(data.length).toBe(2)
     })
 
     it('filters by vehicle_cd', async () => {
-      const res = await api('dtako-logs/by-date?date_time=26/04/04%2010:00&vehicle_cd=1')
+      const res = await api('dtako-logs/by-date?date_time=2026-04-04T10:00:00%2B09:00&vehicle_cd=1')
       expect(res.status).toBe(200)
       const data = await res.json()
       expect(data.length).toBe(1)
@@ -151,7 +151,9 @@ describe('dtakologs API', () => {
 
   describe('GET /dtako-logs/by-date-range', () => {
     it('returns records in date range', async () => {
-      const res = await api('dtako-logs/by-date-range?start_date_time=26/04/03%2000:00&end_date_time=26/04/04%2023:59')
+      // ISO8601 RFC3339 (JST) — backend が data_date_time::timestamptz cast で比較するため、
+      // PostgreSQL が parse 可能な形式で送る (rust-alc-api PR #97 以降)。
+      const res = await api('dtako-logs/by-date-range?start_date_time=2026-04-03T00:00:00%2B09:00&end_date_time=2026-04-04T23:59:59%2B09:00')
       expect(res.status).toBe(200)
       const data = await res.json()
       // All 4 seed records are in this range
@@ -159,7 +161,7 @@ describe('dtakologs API', () => {
     })
 
     it('filters by vehicle_cd', async () => {
-      const res = await api('dtako-logs/by-date-range?start_date_time=26/04/03%2000:00&end_date_time=26/04/04%2023:59&vehicle_cd=2')
+      const res = await api('dtako-logs/by-date-range?start_date_time=2026-04-03T00:00:00%2B09:00&end_date_time=2026-04-04T23:59:59%2B09:00&vehicle_cd=2')
       expect(res.status).toBe(200)
       const data = await res.json()
       expect(data.length).toBe(1)
@@ -167,7 +169,7 @@ describe('dtakologs API', () => {
     })
 
     it('returns empty for out-of-range dates', async () => {
-      const res = await api('dtako-logs/by-date-range?start_date_time=25/01/01%2000:00&end_date_time=25/01/02%2023:59')
+      const res = await api('dtako-logs/by-date-range?start_date_time=2025-01-01T00:00:00%2B09:00&end_date_time=2025-01-02T23:59:59%2B09:00')
       expect(res.status).toBe(200)
       const data = await res.json()
       expect(data.length).toBe(0)

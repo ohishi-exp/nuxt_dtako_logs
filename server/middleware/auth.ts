@@ -55,7 +55,7 @@ export function resolveAuthAction(opts: {
 
   return {
     action: 'redirect',
-    url: `https://auth.mtamaramu.com/login?redirect_uri=${encodeURIComponent(redirectUri)}`,
+    url: `https://auth.ippoan.org/login?redirect_uri=${encodeURIComponent(redirectUri)}`,
   }
 }
 
