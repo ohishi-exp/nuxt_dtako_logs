@@ -20,7 +20,7 @@ jobs:
       has_integration: true
       install_command: 'npm install'
       post_install_script: 'npx nuxt prepare'
-      npm_scope: '@yhonda-ohishi-pub-dev'
+      npm_scope: '@ippoan'
       integration_test_command: 'npx vitest run tests/integration'
       integration_env: 'API_BASE_URL=http://localhost:18080'
     secrets:

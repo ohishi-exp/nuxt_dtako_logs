@@ -1025,6 +1025,13 @@
   resolved "https://registry.npmjs.org/@ioredis/commands/-/commands-1.2.0.tgz"
   integrity sha512-Sx1pU8EM64o2BrqNpEO1CNLtKQwyhuXuqyfH7oGKCk+1a33d2r5saW8zNwm3j6BTExtjrv2BxTgzzkMwts6vGg==
 
+"@ippoan/auth-client@^0.2.29":
+  version "0.2.29"
+  resolved "https://npm.pkg.github.com/download/@ippoan/auth-client/0.2.29/d94b32712dc274f7110ce5806a7cd15fa93d098c"
+  integrity sha512-4s8bxUkW9KLo/nAl+Ju3ZpJkOpe85IbQg4zssESset8WfLgucw8XYNScCaibtaT923heR774aoZv+XOdqdTuzA==
+  dependencies:
+    uqr "^0.1.2"
+
 "@isaacs/cliui@^8.0.2":
   version "8.0.2"
   resolved "https://registry.npmjs.org/@isaacs/cliui/-/cliui-8.0.2.tgz"
@@ -2361,13 +2368,6 @@
   version "13.9.0"
   resolved "https://registry.npmjs.org/@vueuse/shared/-/shared-13.9.0.tgz"
   integrity sha512-e89uuTLMh0U5cZ9iDpEI2senqPGfbPRTHM/0AaQkcxnpqjkZqDYP8rpfm7edOz8s+pOCOROEy1PIveSW8+fL5g==
-
-"@yhonda-ohishi-pub-dev/auth-client@^0.1.31":
-  version "0.1.31"
-  resolved "https://npm.pkg.github.com/download/@yhonda-ohishi-pub-dev/auth-client/0.1.31/389c9bbf86966cd3c4df0efefc47af022d6064a8"
-  integrity sha512-ViPZgs54HRqzG9iBEnlB4L+sGihNDWL0haO6d0hoWEqhBV4ujgCRKplSX2I9awVN/kHUgy/V189KIGB0wni1hA==
-  dependencies:
-    uqr "^0.1.2"
 
 abbrev@^2.0.0:
   version "2.0.0"

@@ -87,7 +87,7 @@ const DateD = ref("")
 
 console.log("public")
 import { UInput } from '#components'
-import { AuthToolbar } from '@yhonda-ohishi-pub-dev/auth-client'
+import { AuthToolbar } from '@ippoan/auth-client'
 import AllState from '~/components/allState.vue'
 import type { DtakologView } from '~/composables/useDtakologs'
 
