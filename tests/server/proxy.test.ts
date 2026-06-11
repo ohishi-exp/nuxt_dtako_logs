@@ -5,9 +5,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 // lib 側 (auth-worker packages/auth-client) にある。ここでは本 repo の
 // server route が lib に正しく配線されていること (wiring) だけを固定する。
 
-const createApiProxyHandlerMock = vi.fn((opts: unknown) => opts)
+// vi.mock は hoist されるため、factory が参照する mock は vi.hoisted で先に作る
+const { createApiProxyHandlerMock } = vi.hoisted(() => ({
+  createApiProxyHandlerMock: vi.fn((opts: unknown) => opts),
+}))
 vi.mock('@ippoan/auth-client/server', () => ({
-  createApiProxyHandler: (opts: unknown) => createApiProxyHandlerMock(opts),
+  createApiProxyHandler: createApiProxyHandlerMock,
 }))
 
 let runtimeConfig: Record<string, unknown> = {}
