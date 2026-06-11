@@ -19,6 +19,7 @@ jobs:
     with:
       has_tests: true
       has_integration: true
+      compat_backend_repo: 'none'   # map 移行 PR の CI 通過用 opt-out (#59 Wave 3)
       install_command: 'npm install'
       post_install_script: 'npx nuxt prepare'
       npm_scope: '@ippoan'
