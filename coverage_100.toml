@@ -7,6 +7,9 @@ path = "composables/useAuth.ts"
 path = "composables/useDtakologs.ts"
 
 [[files]]
+path = "composables/useDtakoTickets.ts"
+
+[[files]]
 path = "server/api/proxy/[...path].ts"
 
 [[files]]
