@@ -118,8 +118,11 @@ function ConvertLatLngDDMMtoDD(SetlatNm: Number, SetLngNm: Number) {
 }
 
 const { $loader } = useNuxtApp()
-const { Map, InfoWindow } = await $loader.importLibrary("maps")
-const { AdvancedMarkerElement, PinElement } = await $loader.importLibrary("marker")
+// 地図ライブラリはトップレベル await で待たず onMounted で遅延ロード（初回描画=テーブル表示をブロックしない / LCP 改善）
+let Map: typeof google.maps.Map
+let InfoWindow: typeof google.maps.InfoWindow
+let AdvancedMarkerElement: typeof google.maps.marker.AdvancedMarkerElement
+let PinElement: typeof google.maps.marker.PinElement
 
 const data2 = ref<DtakologView[]>([])
 
@@ -395,6 +398,17 @@ const mapOptions = {
 
 
 onMounted(async () => {
+  // データ取得を最優先で発火（地図ロード完了を待たせない = 並行実行）
+  const dataPromise = fetchCurrentListAll()
+
+  // 地図ライブラリをここで遅延ロード（初回描画をブロックしない）
+  const maps = await $loader.importLibrary("maps")
+  Map = maps.Map
+  InfoWindow = maps.InfoWindow
+  const markerLib = await $loader.importLibrary("marker")
+  AdvancedMarkerElement = markerLib.AdvancedMarkerElement
+  PinElement = markerLib.PinElement
+
   if (gmap.value != undefined) {
 
     mm = new Map(
@@ -408,8 +422,8 @@ onMounted(async () => {
     )
   }
 
-  // gRPC-Webで最新運行ログを取得
-  await fetchCurrentListAll()
+  // 上で発火した取得を待つ
+  await dataPromise
 });
 
 
