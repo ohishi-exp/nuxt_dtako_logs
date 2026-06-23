@@ -25,6 +25,9 @@ jobs:
       npm_scope: '@ippoan'
       integration_test_command: 'npx vitest run tests/integration'
       integration_env: 'API_BASE_URL=http://localhost:18080'
+      # release-wave 非参加なので flip 機構が無い。tag release を即 100% deploy
+      # にする (default true = no-traffic upload だと prod traffic が切り替わらない)
+      release_no_traffic: false
     secrets:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       # cross-org (ohishi-exp → ippoan/ci-workflows) は secrets: inherit が
@@ -32,3 +35,5 @@ jobs:
       # auto-merge job が App installation token を mint できる
       CI_APP_ID: ${{ secrets.CI_APP_ID }}
       CI_APP_PRIVATE_KEY: ${{ secrets.CI_APP_PRIVATE_KEY }}
+      # deploy-release の traffic-report 用 (cross-org は inherit 不可 → 明示渡し)
+      RELEASE_WAVE_WEBHOOK_SECRET: ${{ secrets.RELEASE_WAVE_WEBHOOK_SECRET }}
