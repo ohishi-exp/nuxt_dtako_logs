@@ -32,3 +32,5 @@ jobs:
       # auto-merge job が App installation token を mint できる
       CI_APP_ID: ${{ secrets.CI_APP_ID }}
       CI_APP_PRIVATE_KEY: ${{ secrets.CI_APP_PRIVATE_KEY }}
+      # deploy-release の traffic-report 用 (cross-org は inherit 不可 → 明示渡し)
+      RELEASE_WAVE_WEBHOOK_SECRET: ${{ secrets.RELEASE_WAVE_WEBHOOK_SECRET }}
