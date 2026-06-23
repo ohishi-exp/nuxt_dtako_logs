@@ -16,6 +16,12 @@ head_sampling_rate = 1
 NUXT_PUBLIC_AUTH_WORKER_URL = "https://auth.ippoan.org"
 NUXT_ALC_API_URL = "https://alc-api.ippoan.org"
 
+# secret-verify (frontend-ci) 用の明示宣言。本 Worker は wrangler secret /
+# Secrets Store binding を持たない (proxy は client の Authorization 転送 +
+# plain var のみ) ため空。
+[secrets]
+required = []
+
 # dtako-logs.ippoan.org: ippoan ドメインへ移設 (Refs ippoan/auth-worker#286)。
 # *.ippoan.org なら auth-worker の logi_auth_token cookie (Domain=.ippoan.org) が
 # 届き、ログイン token を URL fragment に出さず cookie 配布で受けられる
