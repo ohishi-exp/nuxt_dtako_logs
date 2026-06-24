@@ -1,3 +1,11 @@
+# single-env 運用 (staging = prod)。cf-flickr-proxy / HealthConnectReaderWorker と
+# 同じ pattern。worker は nuxt-dtako-logs 1 本のみで、PR (non-draft) / tag push
+# どちらも root config を `wrangler deploy` する (test.yml の deploy_*_script)。
+# 旧 [env.staging] は撤去 — prod 用 release (v* tag) と staging worker が分離して
+# いた結果、introspect gate (#290) を入れた PR が staging worker にだけ載り
+# dtako-logs.ippoan.org (prod) が INTERNAL_SHARED_SECRET binding 未解決で全 API
+# 503 になった (#290 Phase 4 の deploy 分離事故)。single-env なら deploy 先と
+# 公開 domain が常に一致する。
 name = "nuxt-dtako-logs"
 account_id = "24b45709d060d957340180e995f0d373"
 compatibility_date = "2024-09-19"
@@ -38,16 +46,3 @@ custom_domain = true
 [[routes]]
 pattern = "ohishi2.mtamaramu.com"
 custom_domain = true
-
-[env.staging]
-name = "nuxt-dtako-logs-staging"
-[env.staging.vars]
-NUXT_PUBLIC_AUTH_WORKER_URL = "https://auth-staging.ippoan.org"
-NUXT_ALC_API_URL = "https://rust-alc-api-staging-566bls5vfq-an.a.run.app"
-
-# named env は top-level binding を継承しないので再宣言する。
-# staging/prod 統合 entry なので同じ secret_name (auth-worker #189)。
-[[env.staging.secrets_store_secrets]]
-binding = "INTERNAL_SHARED_SECRET"
-store_id = "bd7bc91a3e5f4111add4acf6cb4b8733"
-secret_name = "INTERNAL_SHARED_SECRET"

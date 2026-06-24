@@ -25,9 +25,14 @@ jobs:
       npm_scope: '@ippoan'
       integration_test_command: 'npx vitest run tests/integration'
       integration_env: 'API_BASE_URL=http://localhost:18080'
-      # release-wave 非参加なので flip 機構が無い。tag release を即 100% deploy
-      # にする (default true = no-traffic upload だと prod traffic が切り替わらない)
-      release_no_traffic: false
+      # single-env 運用 (staging = prod)。PR (non-draft) / tag push どちらも
+      # root config を `wrangler deploy` し、公開 domain (dtako-logs.ippoan.org)
+      # に直接反映する。worker / domain を 1 本化し、deploy 先と公開先のズレ
+      # (= introspect gate #290 が staging worker にだけ載り prod が全 API 503)
+      # を解消する。[build] command = "npm run build" が deploy 時に nuxt build
+      # を回すので script 側で build は呼ばない。
+      deploy_staging_script: 'npx wrangler deploy'
+      deploy_release_script: 'npx wrangler deploy'
       # #290 Phase 4 / #293: wrangler.toml に INTERNAL_SHARED_SECRET の
       # secrets_store_secrets binding を追加したので secret-verify が必須化する。
       # GCP cloudsql-sv の同名 secret を WIF で検証 (ohishi-exp org vars)。
