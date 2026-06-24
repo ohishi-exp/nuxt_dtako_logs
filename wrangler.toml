@@ -16,11 +16,15 @@ head_sampling_rate = 1
 NUXT_PUBLIC_AUTH_WORKER_URL = "https://auth.ippoan.org"
 NUXT_ALC_API_URL = "https://alc-api.ippoan.org"
 
-# secret-verify (frontend-ci) 用の明示宣言。本 Worker は wrangler secret /
-# Secrets Store binding を持たない (proxy は client の Authorization 転送 +
-# plain var のみ) ため空。
-[secrets]
-required = []
+# auth-worker POST /auth/introspect (#290 Phase 4 / #293) を叩くための共有 secret。
+# /api/proxy/* の forward 前段で browser JWT を署名検証 + APP_TENANT_ACL 判定
+# するために使う (defense-in-depth)。auth-worker / cc-relay / ref-files と同じ
+# CF Secrets Store entry を物理共有。GCP cloudsql-sv に同名 secret が SoT として
+# 存在し、frontend-ci の secret-verify が検証する (test.yml で gcp_secret_verify_* 配線)。
+[[secrets_store_secrets]]
+binding = "INTERNAL_SHARED_SECRET"
+store_id = "bd7bc91a3e5f4111add4acf6cb4b8733"
+secret_name = "INTERNAL_SHARED_SECRET"
 
 # dtako-logs.ippoan.org: ippoan ドメインへ移設 (Refs ippoan/auth-worker#286)。
 # *.ippoan.org なら auth-worker の logi_auth_token cookie (Domain=.ippoan.org) が
@@ -40,3 +44,10 @@ name = "nuxt-dtako-logs-staging"
 [env.staging.vars]
 NUXT_PUBLIC_AUTH_WORKER_URL = "https://auth-staging.ippoan.org"
 NUXT_ALC_API_URL = "https://rust-alc-api-staging-566bls5vfq-an.a.run.app"
+
+# named env は top-level binding を継承しないので再宣言する。
+# staging/prod 統合 entry なので同じ secret_name (auth-worker #189)。
+[[env.staging.secrets_store_secrets]]
+binding = "INTERNAL_SHARED_SECRET"
+store_id = "bd7bc91a3e5f4111add4acf6cb4b8733"
+secret_name = "INTERNAL_SHARED_SECRET"
