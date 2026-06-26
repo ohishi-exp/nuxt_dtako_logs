@@ -34,6 +34,17 @@ binding = "INTERNAL_SHARED_SECRET"
 store_id = "bd7bc91a3e5f4111add4acf6cb4b8733"
 secret_name = "INTERNAL_SHARED_SECRET"
 
+# auth-worker /alc-proxy/* (rust-alc-api#434 step 3 方式 B) を worker-to-worker
+# (in-process) で叩くための service binding。createAuthWorkerProxyHandler が
+# env.AUTH_WORKER.fetch で /alc-proxy に forward する (= 方式 B は service binding
+# 必須。未設定だと proxy route が `AUTH_WORKER service binding 未設定` で 503
+# fail-closed になり全 API が落ちる)。single-env (prod) worker なので prod
+# auth-worker を指す。auth-worker 側 /alc-proxy は ALC_API_PROXY_SA_KEY で
+# OIDC mint するため、prod auth-worker に同 secret が投入済みである必要がある。
+[[services]]
+binding = "AUTH_WORKER"
+service = "auth-worker"
+
 # dtako-logs.ippoan.org: ippoan ドメインへ移設 (Refs ippoan/auth-worker#286)。
 # *.ippoan.org なら auth-worker の logi_auth_token cookie (Domain=.ippoan.org) が
 # 届き、ログイン token を URL fragment に出さず cookie 配布で受けられる
