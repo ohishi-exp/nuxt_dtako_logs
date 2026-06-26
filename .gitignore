@@ -29,7 +29,3 @@ cf-grpc-proxy/
 # Rust build output
 target/
 coverage/
-
-# dev dist-tag (@ippoan/auth-client) を毎回 fresh 解決させる: lockfile を commit しない (npm/cli#7562)
-package-lock.json
-yarn.lock
