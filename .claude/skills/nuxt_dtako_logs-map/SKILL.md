@@ -1,6 +1,6 @@
 ---
 name: nuxt_dtako_logs-map
-generated-from: nuxt_dtako_logs:b1ab7e0b0a792e9eac7c4dc6bd7ecd7b3c836652
+generated-from: nuxt_dtako_logs:0919965a01085fb1610b7ccc16b8ed23cd444238
 paths: [components/, composables/, pages/, server/]
 description: ippoan/nuxt_dtako_logs (デジタコ運行ログ表示 Nuxt 4 PWA / Cloudflare Workers) の構造ナビゲーション。デジタルタコグラフ (dtako) の運行ログを地図 + テーブルで表示し rust-alc-api へ proxy する PWA。single page + Google Map・REST proxy・auth middleware の配置と、CLAUDE.md の大幅 drift を 1 枚にまとめる。トリガー:「nuxt_dtako_logs」「nuxt-dtako-logs」「デジタコ」「dtako」「運行ログ」「タコグラフ」「ohishi2.mtamaramu.com」「useDtakologs」等。
 ---
@@ -23,14 +23,14 @@ Nuxt root (app/ ディレクトリは無く `pages/` `components/` `server/` が
 | **pages** | `pages/index.vue` | 唯一のページ。Google Map + ログテーブル (詳細エリア + メインテーブル) |
 | **components** | `components/allState.vue` `components/date/{ShortSt,DataDatetimeSt,ShortDatetimeSt,ShortShortSt}.vue` | 状態表示 / 日時フォーマット表示 |
 | **composables** | `composables/useDtakologs.ts` `composables/useAuth.ts` | 運行ログ取得 / 認証 |
-| **server route** | `server/api/proxy/[...path].ts` | `/api/proxy/*` → rust-alc-api `/api/*` REST proxy (JWT + tenant_id 転送) |
+| **server route** | `server/api/proxy/[...path].ts` | `/api/proxy/*` → rust-alc-api `/api/*` REST proxy。#434 step 2 で `createIdentityProxyHandler` (introspect 検証 + X-Tenant-ID/X-User-* 注入) に置換 |
 | **server 認証** | `server/middleware/auth.ts` | cookie 未認証なら auth-worker へ 302 |
 | **plugins** | `plugins/auth.client.ts` `plugins/google-map.client.ts` | client 認証初期化 / Google Maps loader |
 
 ## entrypoint
 
 - **nitro**: `nuxt.config.ts` → `nitro.preset = "cloudflare-module"`、`main = ./.output/server/index.mjs` (wrangler.toml)。
-- **REST proxy**: `/api/proxy/[...path].ts` → `${alcApiUrl}/api/${path}`。JWT を Authorization で転送し、payload の `tenant_id`/`org` を `X-Tenant-ID` にフォールバック設定 (carins と同型)。
+- **REST proxy**: `/api/proxy/[...path].ts` → `${alcApiUrl}/api/${path}`。**#434 step 2 で `@ippoan/auth-client/server` の `createIdentityProxyHandler` に置換** (旧 `createApiProxyHandler` + `requireAuth`)。cookie/Bearer の browser JWT を AUTH_WORKER service binding 経由で introspect 検証 → `X-Tenant-ID` + `X-User-ID/Email/Role` を注入して転送 (rust-alc-api は #441 で dumb backend 化したため X-User-* が必要)。`INTERNAL_SHARED_SECRET` は Secrets Store binding (carins と同型)。
 - **wrangler**: top-level = prod (`nuxt-dtako-logs`, **ohishi2.mtamaramu.com** custom domain)。`[env.staging]` = `nuxt-dtako-logs-staging` (route 無し)。`NUXT_ALC_API_URL` / `NUXT_PUBLIC_AUTH_WORKER_URL` を env で切替。
 - **Google Map**: `plugins/google-map.client.ts` + `runtimeConfig.public.googlemapKey` (空既定、実値は env)。
 
