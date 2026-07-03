@@ -1,149 +1,117 @@
 # CLAUDE.md
 
-## 参考リポジトリ
+dtako (デジタコ) 運行ログ表示 PWA。Nuxt 3 + Cloudflare Workers (Nitro `cloudflare_module`)。
+backend は rust-alc-api を **`/api/proxy/*` → auth-worker `/alc-proxy/*`** (方式 B、
+rust-alc-api#434 step 3) 経由で叩く。gRPC / cf-grpc-proxy は過去の実装で、現在の
+コードには存在しない (下記「過去の移行経緯」参照)。
 
-- `rust-logi_ref` - 参考実装
-  - https://github.com/yhonda-ohishi-pub-dev/rust-logi
+## 構成
 
-## 現在の移行作業
+| ファイル | 役割 |
+|---|---|
+| `pages/index.vue` | メイン画面 (運行ログ地図+テーブル、Google Map) |
+| `pages/vehicle-status.vue` | 現在地・DVR動画通知 (下記参照) |
+| `pages/tickets/*.vue` | dtako 起票 (tickets) 管理 |
+| `composables/useDtakologs.ts` | 運行ログ (日次バッチ CSV 由来、GPS含む) の取得 |
+| `composables/useVehicleStatus.ts` | 現在地・DVR動画通知の取得 |
+| `server/api/proxy/[...path].ts` | `/api/proxy/*` → auth-worker `/alc-proxy/*` → rust-alc-api |
+| `server/api/vehicle/*.get.ts` | theearth-np.com ブラウザレス直叩き (下記参照) |
+| `server/middleware/auth.ts` | 未認証時 auth-worker ログイン画面へリダイレクト |
+| `server/utils/auth.ts` | `/api/*` の introspect gate (defense-in-depth) |
 
-### cf-grpc-proxy エラー1001修正 (進行中)
+## デプロイ
 
-#### 問題の概要
-ブラウザからの gRPC リクエスト (`/api/grpc/...`) がエラーコード 1001 で失敗する。
-バックエンド（CloudRun rust-logi）自体は正常。
+single-env (staging = prod)。`dtako-logs.ippoan.org` (主) / `ohishi2.mtamaramu.com`
+(移行期間中の互換) の2ドメインに同じ worker を配信。PR merge / tag push どちらも
+`wrangler deploy` (test.yml の deploy_*_script)。
 
-#### アーキテクチャ
+## 環境変数・binding (`wrangler.toml`)
+
+| key | 用途 |
+|---|---|
+| `NUXT_PUBLIC_AUTH_WORKER_URL` | auth-worker URL |
+| `NUXT_ALC_API_URL` | rust-alc-api Cloud Run URL |
+| `INTERNAL_SHARED_SECRET` (Secrets Store) | auth-worker introspect / `/alc-proxy` 転送の shared secret |
+| `AUTH_WORKER` (service binding) | auth-worker への worker-to-worker fetch |
+
+## 車両現在地・DVR動画 (`/vehicle-status` ページ、Refs ohishi-exp/browser-render-rust#14)
+
+デジタコの日次バッチ CSV 由来の運行ログ (`useDtakologs`) とは別に、theearth-np.com の
+VenusBridgeService (WCF `.svc`) を直接叩いて **より即時性の高い**現在地 / DVR 動画通知を
+取得する機能。ohishi-exp/dtako-scraper#22 のブラウザレス化 (Chromium を使わず素の
+`fetch()` でログイン) と同じ設計を踏襲。実装は ohishi-exp/nuxt-dtako-admin#75
+(dtako-scraper 側の csvdata.zip ブラウザレス化) の姉妹実装。
+
+### アーキテクチャ
+
 ```
-ブラウザ → ohishi2.mtamaramu.com → nuxt-dtako-logs Worker
-  → Service Binding → cf-grpc-proxy Worker
-  → Durable Object (GrpcProxyDO) → IAMトークン取得 → CloudRun (rust-logi)
-```
-
-#### 完了
-- [x] Cloudflare Access が `/api/grpc/*` パスをブロックしていた → Bypass ポリシー追加済み
-- [x] cf-grpc-proxy 内部から `a.run.app` ドメインの DNS 解決が失敗（error 1001 / HTTP 409）する問題を特定
-  - Cloudflare Workers 内部の DNS リゾルバが `a.run.app` → `v2.run.app` CNAME チェーンを解決できない
-  - `ghs.googlehosted.com` も同様に Workers から解決不可（error 1001）
-- [x] DNS-only CNAME レコード追加: `cloudrun-backend.mtamaramu.com` → `ghs.googlehosted.com`（Cloudflare Dashboard）
-- [x] GCP Cloud Run カスタムドメインマッピング追加: `cloudrun-backend.mtamaramu.com` → `rust-logi` サービス
-  - SSL 証明書プロビジョニング完了（Google Trust Services WR3 発行）
-  - `curl` 直接テストで Cloud Run に到達確認（403 = 認証なしで正常）
-- [x] Google Search Console でドメイン所有権確認完了（TXT レコード追加済み）
-- [x] cf-grpc-proxy のデバッグログ削除済み
-
-#### 試行済み・失敗した方法
-- **方法B（CNAME Proxied）**: Cloudflare のオリジン接続 SNI は URL ホスト名をそのまま使用し、CNAME ターゲットには変えない → 404 のまま
-- **方法D（cf.resolveOverride）**: cf-grpc-proxy は Service Binding 経由でアクセスされゾーンルートにないため resolveOverride が無効 → error 1001
-- **ghs.googlehosted.com 直接 fetch**: Workers の DNS リゾルバが解決不可 → error 1001
-- **cloudrun-backend.mtamaramu.com（ghs.googlehosted.com CNAME）fetch**: Workers から fetch するとリダイレクトループ発生（同一ゾーン内ホスト名への fetch の問題の可能性）
-
-#### 根本問題
-Cloudflare Workers の `fetch()` で `cloudrun-backend.mtamaramu.com`（CNAME → `ghs.googlehosted.com`、DNS-only）にアクセスすると **リダイレクトループ** が発生する。`curl` では正常（403）。Workers 固有の問題。
-
-#### 未完了・次に試すべきこと
-1. **リダイレクトループの原因調査**
-   - Workers の fetch から `cloudrun-backend.mtamaramu.com` への接続がなぜリダイレクトループになるか不明
-   - CNAME を `ghs.googlehosted.com` ではなく `rust-logi-566bls5vfq-an.a.run.app` に戻してみる（カスタムドメインマッピングがあれば Cloud Run が `cloudrun-backend.mtamaramu.com` を認識する可能性）
-     - ただし TLS 証明書の問題あり（`a.run.app` サーバーに `cloudrun-backend.mtamaramu.com` 証明書がない）
-2. **別アプローチの検討**
-   - **外部プロキシ経由**: Cloud Run の前に GCP Load Balancer を置く（サーバーレス NEG）
-   - **Cloudflare Tunnel**: cloudflared を GCP 上で動かし、Cloudflare 経由でアクセス
-   - **Workers TCP connect()**: `connect()` API で直接 TCP/TLS 接続し SNI を制御（複雑）
-3. **リクエストボディが 0 バイトになる問題** - Nuxt サーバールート (`server/api/grpc/[...path].ts`) の `readRawBody()` で body が空になる（別問題、後で対処）
-
-#### 現在のコード状態
-- `cf-grpc-proxy/src/index.ts` - `RUST_LOGI_PROXY_URL`（cloudrun-backend.mtamaramu.com）経由で Cloud Run にプロキシ
-- `cf-grpc-proxy/wrangler.toml` - `RUST_LOGI_URL` + `RUST_LOGI_PROXY_URL` 設定済み
-- Cloudflare SSL/TLS: **Full (Strict)** に変更済み（Flexible からの変更でリダイレクトループ解消）
-- Cloudflare DNS: `cloudrun-backend.mtamaramu.com` CNAME → `ghs.googlehosted.com`（DNS-only）
-- Cloudflare DNS: TXT `mtamaramu.com` → `google-site-verification=PO4rETjgCuU6-9NJESs2xoKVhXPieRphXRHueVQJ8eU`
-- GCP Cloud Run: `cloudrun-backend.mtamaramu.com` → `rust-logi` ドメインマッピング（SSL 証明書発行済み）
-- Cloudflare Access: `/api/grpc/*` に Bypass ポリシー設定済み
-
-#### 関連ファイル
-- `cf-grpc-proxy/src/index.ts` - gRPC プロキシ本体（Durable Object + IAM トークンキャッシュ）
-- `cf-grpc-proxy/wrangler.toml` - Worker 設定（環境変数、DO バインディング）
-- `server/api/grpc/[...path].ts` - Nuxt サーバールート（Service Binding 経由で cf-grpc-proxy に転送）
-- `wrangler.toml` - Nuxt Worker 設定（Service Binding `GRPC_PROXY_SERVICE` → `cf-grpc-proxy`）
-
-#### 確認コマンド
-```bash
-# cf-grpc-proxy デプロイ
-cd cf-grpc-proxy && npx wrangler deploy
-
-# ログ監視
-wrangler tail cf-grpc-proxy --format=json
-
-# テスト（workers.dev 経由）
-curl -X POST 'https://nuxt-dtako-logs.m-tama-ramu.workers.dev/api/grpc/logi.dtakologs.DtakologsService/CurrentListAll' \
-  -H 'Content-Type: application/grpc-web+proto' -H 'X-Grpc-Web: 1' \
-  --data-binary $'\x00\x00\x00\x00\x00' -s -w '\nHTTP: %{http_code}\n'
-
-# Cloud Run カスタムドメイン直接テスト（curl からは正常動作する）
-curl -X POST 'https://cloudrun-backend.mtamaramu.com/logi.dtakologs.DtakologsService/CurrentListAll' \
-  -H 'Content-Type: application/grpc-web+proto' -H 'X-Grpc-Web: 1' \
-  --data-binary $'\x00\x00\x00\x00\x00' -s -w '\nHTTP: %{http_code}\n' -D -
-
-# ドメインマッピング状態確認
-gcloud beta run domain-mappings describe --domain cloudrun-backend.mtamaramu.com --region asia-northeast1
+[browser] /vehicle-status ページ
+  │ GET /api/vehicle/status | /api/vehicle/dvr | /api/vehicle/dvr-file
+  ▼
+[Worker server route]
+  │ 1. requireAuth(event) で tenant_id を得る (auth-worker introspect)
+  │ 2. DTAKO_ACCOUNTS (Secrets Store, tenant_id→comp_id/user/pass) から企業を解決
+  │ 3. theearth-venus-client.ts で theearth-np.com に直接ログイン
+  │    (Cloudflare Workers は素の fetch() で外部サイトに直接到達可能。
+  │     dtako-scraper-relay の Workers VPC binding は「Kagoya VPS の
+  │     localhost:8081 に居る dtako-scraper」に到達するためのもので、
+  │     theearth-np.com 自体は普通の公開サイトなので不要)
+  │ 4. VenusBridgeService (`.svc`) へ JSON POST (VehicleStateTableForBranchEx /
+  │    Monitoring_DvrNotification2) して結果を返す
+  └ DVR 動画ファイルは決定論的パス
+    `/dvrData/{comp_id}/{support_id}/{vehicleCD}/{filename}/{filename}.vdf`
+    (NET780 独自コンテナ形式、cookie 付き GET) を fetch してそのまま配信
 ```
 
-#### 引き継ぎサマリー
-**解決済み**: SSL/TLS モードが Flexible だったためリダイレクトループが発生していた。Full (Strict) に変更後、`cloudrun-backend.mtamaramu.com` への fetch で Cloud Run に正常到達（HTTP 200、gRPC レスポンス受信）。
+### 現在地 (`VehicleStateTableForBranchEx`) は推測実装
 
-**現在のコード**: `RUST_LOGI_PROXY_URL`（`cloudrun-backend.mtamaramu.com`）経由で Cloud Run にプロキシ。
+issue #14 の調査時点で実データ PoC が無かったため、レスポンスの緯度経度フィールド名は
+`GPSLatitude`/`Latitude`/`Lat` 等の候補を順に試す推測実装。解決できなかった場合は
+`VehicleState.locationResolved = false` を返し、`raw` (生レスポンス) を必ず添えるので、
+UI 側は「未解決」と表示しつつ raw で実際のフィールド名を確認できる (黙って間違った値を
+出さない、「黙って200」対策の派生)。実データで確認できたら
+`server/utils/theearth-venus-client.ts` の `LAT_FIELD_CANDIDATES`/`LNG_FIELD_CANDIDATES`
+を実フィールド名に絞り込むこと。
 
-**残課題**:
-- ブラウザからの E2E テスト未実施
-- リクエストボディが 0 バイトになる問題（Nuxt サーバールート `readRawBody()` の問題、別途対処）
+DVR 動画通知 (`Monitoring_DvrNotification2`) はログインフォームと同様、実機ブラウザトレース
+(issue #14) で `sort` パラメータ形式・決定論的パス・NET780 マジックバイトまで確認済み。
 
----
+### `DTAKO_ACCOUNTS` の投入 (未実施、運用側フォロー)
 
-### 詳細ページのレイアウト調整 (進行中)
+`server/utils/dtako-accounts.ts` は ohishi-exp/dtako-scraper の Rust 版・
+ohishi-exp/nuxt-dtako-admin の `dtako-scraper-relay` DO と**同一 JSON shape**の
+`DTAKO_ACCOUNTS` secret (`[{comp_id, user_name, user_pass, tenant_id}, ...]`) を
+tenant_id で引く。本 repo にはまだ Secrets Store binding が **無い** (`wrangler.toml`
+に未追加)。有効化する手順:
 
-#### 完了
-- [x] マップと詳細ログを中央揃えに変更 (`justify-center`)
-- [x] マップと詳細ログを一つの枠（`border border-white`）に統合
-- [x] 横並びレイアウトに変更（`flex`）
-- [x] マップとテーブルの間に区切り線追加（`border-r border-white`）
-- [x] マップの幅を485pxに調整（メインテーブルとの幅合わせ）
+1. `DTAKO_ACCOUNTS` を CF Secrets Store に投入 (既に dtako-scraper 側で同じ値を
+   持っていれば使い回せる、`secret-inject` skill 使用)
+2. `wrangler.toml` に `[[secrets_store_secrets]] binding = "DTAKO_ACCOUNTS"` を追加
+3. staging で `/vehicle-status` を開き、`GET /api/vehicle/status` が 503 (未投入) から
+   実データ取得に変わることを確認
 
-#### 未完了
-1. **枠のズレ修正** - マップ+詳細テーブルの枠とメインテーブルの枠がまだ完全に揃っていない可能性あり
-   - 詳細エリア: 約1294px（マップ485px + テーブル807px）
-   - メインテーブル: 約1294px
-   - 幅の微調整が必要な場合あり
+binding 未設定の間は `resolveDtakoAccount` が `null` を返し、`/api/vehicle/*` は
+503 を返す (fail-closed、クラッシュしない)。
 
-#### 関連ファイル
-- `pages/index.vue` - メインページ（15-43行目が詳細エリア、44行目以降がメインテーブル）
+### 関連 issue
 
-#### 現在の構造
-```html
-<!-- 詳細エリア（マップ+ログテーブル） -->
-<div class="flex justify-center hidden" ref="hiddenEl">
-  <div class="flex border border-white mx-auto lg:w-max">
-    <div ref="gmap" class="h-[500px] min-w-[485px] border-r border-white"></div>
-    <UTable ... wrapper: 'h-[500px] overflow-auto' ...>
-  </div>
-</div>
+- Refs ohishi-exp/browser-render-rust#14 (VenusBridge / DVR / ETC ブラウザレス化調査)
+- Refs ohishi-exp/dtako-scraper#22 (CSV ログブラウザレス化、姉妹実装)
+- Related to ohishi-exp/nuxt_dtako_logs#32 (本機能の tracking issue)
+- Related to ohishi-exp/nuxt-dtako-admin#75 (dtako-scraper 側の実装 PR)
 
-<!-- メインテーブル -->
-<UTable ... wrapper: 'max-full h-screen border border-white lg:w-max mx-auto' ...>
-```
+## 過去の移行経緯 (2026-04、履歴として保持)
 
-#### 確認コマンド
-```bash
-# ローカル確認
-npm run dev
+以前は rust-logi (Cloud Run gRPC service) を `cf-grpc-proxy` という別 Worker
+(Durable Object + IAM token cache) 経由で叩いていたが、Cloud Run カスタムドメイン
+マッピングでの DNS 解決・リダイレクトループ問題が頻発し、現在は **rust-alc-api を
+`/alc-proxy` 経由で叩く方式 B に全面移行済み**。`cf-grpc-proxy/` ディレクトリはこの
+repo に存在しない。当時のトラブルシュート詳細は git log (本ファイルの旧版) を参照。
 
-# デプロイ
-npm run deploy
+## テスト
 
-# DevToolsで幅確認
-const tables = document.querySelectorAll('table');
-tables.forEach((t, i) => console.log(`テーブル${i}:`, t.parentElement?.offsetWidth));
-```
-
-#### デプロイURL
-- https://nuxt-dtako-logs.m-tama-ramu.workers.dev
+- `npm test` (Vitest)
+- `server/utils/theearth-venus-client.ts` / `dtako-accounts.ts` / `composables/useVehicleStatus.ts`
+  は fetch をモックした pure ロジックテストで高カバレッジ (100% 到達済みだが
+  `coverage_100.toml` の明示登録はまだしていない — 登録ファイルは
+  `composables/useAuth.ts` 等の既存4ファイルのみ)
