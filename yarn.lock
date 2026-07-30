@@ -1034,11 +1034,12 @@
   resolved "https://registry.npmjs.org/@ioredis/commands/-/commands-1.2.0.tgz"
   integrity sha512-Sx1pU8EM64o2BrqNpEO1CNLtKQwyhuXuqyfH7oGKCk+1a33d2r5saW8zNwm3j6BTExtjrv2BxTgzzkMwts6vGg==
 
-"@ippoan/auth-client@^0.2.150":
-  version "0.2.150"
-  resolved "https://npm.pkg.github.com/download/@ippoan/auth-client/0.2.150/5bf7094ff187ac8f133116664b4fbfbf981f5b65"
-  integrity sha512-Kxfbh1DtVH2CPDmOmlJSRi88YOsB2XWjMq+fmd5/3SEY7l0bciiYilP3EuHPDFoyswT09tZtjKN0X3jUsz1eHg==
+"@ippoan/auth-client@^0.2.153":
+  version "0.2.153"
+  resolved "https://npm.pkg.github.com/download/@ippoan/auth-client/0.2.153/593a49ab17ca8fa74472f44d120cc21ea19d7c59"
+  integrity sha512-xw4+ToOfBqXtDEQ5L8VHO47Mc2BZY8CJTH2lXJhZV5HFX9ifEtbskR//j62ieLxB68uX8alLK5eJAiXyVx0I/w==
   dependencies:
+    "@nuxt/kit" "^3.0.0 || ^4.0.0"
     uqr "^0.1.2"
 
 "@isaacs/cliui@^8.0.2":
@@ -1328,7 +1329,7 @@
     std-env "^3.9.0"
     tinyglobby "^0.2.14"
 
-"@nuxt/kit@^3.13.2", "@nuxt/kit@^3.15.0", "@nuxt/kit@^3.15.1", "@nuxt/kit@^3.9.0", "@nuxt/kit@3.15.4":
+"@nuxt/kit@^3.0.0 || ^4.0.0", "@nuxt/kit@^3.13.2", "@nuxt/kit@^3.15.0", "@nuxt/kit@^3.15.1", "@nuxt/kit@^3.9.0", "@nuxt/kit@3.15.4":
   version "3.15.4"
   resolved "https://registry.npmjs.org/@nuxt/kit/-/kit-3.15.4.tgz"
   integrity sha512-dr7I7eZOoRLl4uxdxeL2dQsH0OrbEiVPIyBHnBpA4co24CBnoJoF+JINuP9l3PAM3IhUzc5JIVq3/YY3lEc3Hw==
