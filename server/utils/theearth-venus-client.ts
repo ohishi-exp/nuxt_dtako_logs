@@ -13,6 +13,58 @@
  * は issue #14 で具体的なパラメータ・パスパターンまで確認済み。
  */
 
+/**
+ * ★ このファイルは「写し」。正本は **ohishi-exp/nuxt-dtako-admin** の
+ *   `workers/dtako-scraper-relay/src/theearth-venus-client.ts`
+ *   (+ ログイン / cookie jar 側は同ディレクトリの `theearth-client.ts`)。
+ *   — Refs ohishi-exp/nuxt-dtako-admin#978
+ *
+ * 由来はこのファイル → nuxt-dtako-admin への移植 (どちらも 2026-07-03) だが、
+ * **以後 theearth-np.com の実機仕様に追従して更新され続けているのは向こうだけ**
+ * (このファイルは ohishi-exp/nuxt_dtako_logs#33 以降 一度も変更されていない)。
+ * そのため #978 で **正本は nuxt-dtako-admin 側**と決めた。
+ * このファイルは退役させず、`vehicle-status` 系 (`server/api/vehicle/*.get.ts`) が
+ * 引き続き使う。
+ *
+ * ■ **ここを直すときは正本も直すこと (逆も同じ)。** theearth は ASP.NET WebForms で
+ *   VIEWSTATE / セッションまわりの仕様がよく動くため、片方だけ直すと必ず片肺になる。
+ *
+ * ■ 最終同期時点 (次に見る人が「いつからズレているか」を測り直さずに読めるように):
+ *     この写しは **ohishi-exp/nuxt_dtako_logs#33 / 2026-07-03** の内容のまま
+ *     (以後このファイルは一度も変更されていない。この repo の main = `f666e1a` / 2026-07-30)。
+ *     正本側の実装の最終変更 (docs commit を除く) は
+ *       `theearth-client.ts`       … nuxt-dtako-admin#644 / 2026-08-04 (`7c97b4f`)
+ *       `theearth-venus-client.ts` … nuxt-dtako-admin#175 / 2026-07-08 (`39ccd50`)
+ *     ⇒ **2026-07-03 以降ズレ続けている。** 最後に両者を突合したのは **2026-08-27**
+ *     (そのときの nuxt-dtako-admin の origin/main = `94b72f2`)。
+ *
+ * ■ 2026-08-27 実測で正本と一字一句同じもの (コメント・空白・`export` 修飾子を除いた比較):
+ *     nuxt-dtako-admin の `theearth-client.ts` 側:
+ *       BASE_URL / LOGIN_PATH / TheearthClientError / FetchLike / CookieJar /
+ *       createCookieJar / extractSetCookieHeaders / ingestSetCookie / cookieHeader /
+ *       LoginParams / FormFieldRef / decodeHtmlEntities / findFormFieldById /
+ *       extractHiddenFields / looksLoggedIn
+ *     同 `theearth-venus-client.ts` 側:
+ *       VENUS_BRIDGE_PATH / pickStringField / VDF_MAGIC
+ *
+ * ■ 同名だが中身が既に分岐しているもの (= 正本側が先に進んでいる。取り込む場合は
+ *   丸ごと持ってくる):
+ *     findTagById / HIDDEN_FIELD_NAMES / postForm / fetchWithJar / login /
+ *     callVenusBridgeMethod / toItemArray / pickNumberField / getVehicleStates /
+ *     DvrNotification / getDvrNotifications / assertVdfMagic /
+ *     DVR_{VEHICLE_CD,VEHICLE_NAME,SERIAL_NO,FILE_NAME,FILE_PATH,EVENT_TYPE,DATETIME,
+ *     DRIVER_NAME}_CANDIDATES
+ *
+ * ■ ★ 既知の取り込み漏れ (未実測・要検証): このファイルの `HIDDEN_FIELD_NAMES` には
+ *   `__VIEWSTATEENCRYPTED` が無い。nuxt-dtako-admin の `theearth-venus` skill
+ *   (`.claude/skills/theearth-venus/SKILL.md`「罠1」) によれば、ログイン POST に
+ *   これを含めないと ASP.NET が viewstate MAC 検証失敗で HTTP 500 を返す。
+ *   ライセンス数超過時の自動 kick (同「罠2b」) もこちらには無い。
+ *   ログインが通らなくなっていたらまずここを疑うこと。
+ *
+ * theearth 実機知見の正本は nuxt-dtako-admin の `theearth-venus` skill。
+ */
+
 const BASE_URL = "https://theearth-np.com";
 const LOGIN_PATH = "/F-OES1010[Login].aspx";
 const VENUS_BRIDGE_PATH = "/Bridge/B-GOS0010[VenusBridgeService].svc";
