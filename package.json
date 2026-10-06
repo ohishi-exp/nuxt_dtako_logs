@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@googlemaps/js-api-loader": "^1.16.8",
-    "@ippoan/auth-client": "^0.2.225",
+    "@ippoan/auth-client": "^0.2.269",
     "@nuxt/ui": "^2.22.3",
     "@types/google.maps": "^3.58.1",
     "@vite-pwa/nuxt": "0.10.6",
