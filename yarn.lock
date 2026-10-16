@@ -1034,10 +1034,10 @@
   resolved "https://registry.npmjs.org/@ioredis/commands/-/commands-1.2.0.tgz"
   integrity sha512-Sx1pU8EM64o2BrqNpEO1CNLtKQwyhuXuqyfH7oGKCk+1a33d2r5saW8zNwm3j6BTExtjrv2BxTgzzkMwts6vGg==
 
-"@ippoan/auth-client@^0.2.295":
-  version "0.2.295"
-  resolved "https://npm.pkg.github.com/download/@ippoan/auth-client/0.2.295/4beea9c9cbb60564d3dfa9db39729dca89b14f8a"
-  integrity sha512-//p3DFKrNjrih4LOL5uQYH6GlmNLUzT20L0/emqT7Wvb03HfQlSnPvehFXBiwSH35GEuO4z+eSmYElzQt5pBgA==
+"@ippoan/auth-client@^0.2.298":
+  version "0.2.298"
+  resolved "https://npm.pkg.github.com/download/@ippoan/auth-client/0.2.298/d2e10f037728bd36df3bd87b36ffa35438811b2a"
+  integrity sha512-+y3iYmIGtzM3AzGC5/Wwc0dddyM/rm0mfgG3exjWhexdDMIa4S9s+NsMvMCWPMwGEen3DGuSs3GIYDDHDrD9jw==
   dependencies:
     "@nuxt/kit" "^3.0.0 || ^4.0.0"
     uqr "^0.1.2"
