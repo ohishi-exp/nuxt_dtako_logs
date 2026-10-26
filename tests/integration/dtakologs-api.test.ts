@@ -10,8 +10,13 @@ import { createHmac } from 'node:crypto'
 import { TEST_TENANT_ID, TEST_USER_ID, JWT_SECRET } from '../helpers/api-test-data'
 
 const API_BASE = process.env.API_BASE_URL
-if (!API_BASE) {
-  describe.skip('dtakologs API (no API_BASE_URL)', () => {
+// 読み取りの 4 口 (`/api/dtako-logs/{current,current/select,by-date,by-date-range}`) は ippoan/alc-dtako-worker へ移り、
+// rust-alc-api から消える (W5c-1、Refs ippoan/rust-alc-api#680。本番は auth-worker v0.2.341 で worker に回っている)。
+// このテストの相手は docker-compose.test.yml の rust-alc-api のコンテナなので、もう測れない (同じ挙動は
+// alc-dtako-worker の tests/screen_flow.rs が組み込みの PostgreSQL で縛る)。
+const MOVED_TO_ALC_DTAKO_WORKER = true
+if (!API_BASE || MOVED_TO_ALC_DTAKO_WORKER) {
+  describe.skip('dtakologs API (no API_BASE_URL / moved to alc-dtako-worker)', () => {
     it('skipped', () => {})
   })
 } else {
