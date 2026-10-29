@@ -44,7 +44,7 @@ Nuxt root (app/ ディレクトリは無く `pages/` `components/` `server/` が
 ## CCoW/CI から見た立ち位置
 
 - rust-alc-api を叩く consumer 群の 1 つ (carins / nuxt-trouble / alc-app の兄弟)。認証は `@ippoan/auth-client` + auth-worker (auth.ippoan.org)。
-- CI: `.github/workflows/{test,tag-release}.yml` (frontend-ci 系)。`coverage_100.toml` + `docker-compose.test.yml` (rust-alc-api コンテナで live テスト可能)。`tests/` に composables/server/integration テストあり。
+- CI: `.github/workflows/{test,tag-release}.yml` (frontend-ci 系)。`coverage_100.toml`。`tests/` に composables/server テストあり。
 
 ## 関連 skill
 

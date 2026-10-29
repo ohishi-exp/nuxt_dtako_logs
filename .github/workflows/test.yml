@@ -18,14 +18,10 @@ jobs:
     uses: ippoan/ci-workflows/.github/workflows/frontend-ci.yml@main
     with:
       has_tests: true
-      has_integration: true
-      compat_backend_repo: 'none'   # map 移行 PR の CI 通過用 opt-out (#59 Wave 3)
       install_command: 'npm install'
       post_install_script: 'npx nuxt prepare'
       npm_scope: '@ippoan'
       use_auth_client_dev: true   # PR 時に @ippoan/auth-client@dev を overlay install (createIdentityProxyHandler 取得、Refs rust-alc-api#434)
-      integration_test_command: 'npx vitest run tests/integration'
-      integration_env: 'API_BASE_URL=http://localhost:18080'
       # single-env 運用 (staging = prod)。PR (non-draft) / tag push どちらも
       # root config を `wrangler deploy` し、公開 domain (dtako-logs.ippoan.org)
       # に直接反映する。worker / domain を 1 本化し、deploy 先と公開先のズレ
